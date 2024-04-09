@@ -18,6 +18,8 @@ func main() {
 	mux.HandleFunc("/", handlers.HandleHome) // catch-all
 	mux.HandleFunc("/snippet/view", handlers.HandleViewSnippet)
 	mux.HandleFunc("/snippet/create", handlers.HandleCreateSnippet)
+	// http.HandleFunc("/", handlers.HandleHome) // doesn't need mux
+
 	log.Println("Starting server on port:", PORT)
 	if err := http.ListenAndServe(PORT, mux); err != nil {
 		log.Fatal(err)
