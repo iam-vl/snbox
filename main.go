@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"github.com/iam-vl/snbox/handlers"
 )
 
 const (
@@ -13,14 +15,11 @@ func main() {
 	// fmt.Println("hi there")
 	// Initialize a new servemux
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", HandleHome)
+	mux.HandleFunc("/", handlers.HandleHome) // catch-all
+	mux.HandleFunc("/snippet/view", handlers.HandleViewSnippet)
+	mux.HandleFunc("/snippet/create", handlers.HandleCreateSnippet)
 	log.Println("Starting server on port:", PORT)
 	if err := http.ListenAndServe(PORT, mux); err != nil {
 		log.Fatal(err)
 	}
-
-}
-
-func HandleHome(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("hello from snippetbox"))
 }
