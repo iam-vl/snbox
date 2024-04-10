@@ -22,8 +22,8 @@ func HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+	// http.ResponseWriter (w.Write) <- io.Writer interface
 	fmt.Fprintf(w, "Displaying a snippet with id: %v...\n", id)
-
 	// w.Write([]byte(`{"name": "Alex", "id": %d}`))
 }
 
