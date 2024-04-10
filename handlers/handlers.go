@@ -1,6 +1,9 @@
 package handlers
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 func HandleHome(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -29,4 +32,26 @@ func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 		// return
 	}
 	w.Write([]byte("Create a new snippet"))
+}
+
+// snippet/create
+func HandleCustomizeHeaders(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "public, max-age=31536000") // overrides
+	w.Header().Add("Cache-Control", "public")
+	w.Header().Add("Cache-Control", "max-age=31536000")
+	// Avoid canonicalization
+	// w.Header()["X-XSS-Protection"] = []string("1;mode=block")
+	fmt.Printf("Header before deleting / suppressing: %+v\n", w.Header())
+	fmt.Printf("Date before suppressing: %+v\n", w.Header().Get("Date"))
+	w.Header()["Date"] = nil // suppress a system generated header
+	fmt.Printf("Header before deleting: %+v\n", w.Header())
+	fmt.Printf("First val: %+v\n", w.Header().Get("Cache-Control")) // first val
+	fmt.Printf("Entire header after deleting: %+v\n", w.Header())
+	w.Header().Del("Cache-Control")
+	fmt.Println("===========")
+	fmt.Printf("Header after deleting: %+v\n", w.Header())
+
+	w.Write([]byte(`{"name": "Alex"}`))
 }
