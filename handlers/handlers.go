@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 func HandleHome(w http.ResponseWriter, r *http.Request) {
@@ -13,10 +14,17 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("hello from snippetbox"))
 }
 
-// /snippet/view
+// /snippet/view?id=123
 func HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"name": "Alex"}`))
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+	fmt.Fprintf(w, "Displaying a snippet with id: %v...\n", id)
+
+	// w.Write([]byte(`{"name": "Alex", "id": %d}`))
 }
 
 // snippet/create
