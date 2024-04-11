@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -11,7 +13,16 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	w.Write([]byte("hello from snippetbox"))
+	ts, err := template.ParseFiles("./ui/html/pages/home.tmpl")
+	if err != nil {
+		log.Panicln(err)
+		http.Error(w, "Error parsing template", 500)
+	}
+	if err := ts.Execute(w, nil); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Internal Server Error", 500)
+	}
+	// w.Write([]byte("hello from snippetbox"))
 }
 
 // /snippet/view?id=123
@@ -39,7 +50,7 @@ func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 		// w.Write([]byte("Header not allowed"))
 		// return
 	}
-	w.Write([]byte("Create a new snippet"))
+	w.Write([]byte("Creating a new snippet"))
 }
 
 // snippet/create

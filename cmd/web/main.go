@@ -11,6 +11,7 @@ const (
 
 func main() {
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/", HandleHome) // catch-all
 	mux.HandleFunc("/snippet/view", HandleViewSnippet)
 	mux.HandleFunc("/snippet/create", HandleCreateSnippet)
