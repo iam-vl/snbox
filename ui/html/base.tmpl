@@ -13,6 +13,13 @@
     <main>
         {{ template "main" . }}
     </main>
+    
+    <aside>
+    {{ block "sidebar" . }}
+        <p>My default sidebar content </p>
+    {{ end }}
+    </aside>
+
     <footer>
         Powered by <a href="https://go.dev/">Go</a>
     </footer>
