@@ -8,6 +8,25 @@ curl https://www.alexedwards.net/static/sb-v2.tar.gz | tar -xvz -C ./ui/static
 go run ./cmd/web
 ```
 
+## Template embedding 
+
+```html
+{{ define "base" }}
+    <title>{{ template "title" . }}</title>
+    <main>{{ template "base" . }}</main>
+{{ end }}
+```
+
+```html
+{{ define "title" }}Home{{ end }}
+{{ define "main" }}
+<h2>Latest snippets </h2>
+<p>Nothing to see here yet!</p>
+{{ end }}
+```
+
+
+
 ## Static file server
 
 ```go
