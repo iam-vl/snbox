@@ -2,9 +2,11 @@
 
 Learning golang based on Alex Edwards' book.
 
-```
+```sh
 curl -i -X POST http://localhost:1111/header
 curl https://www.alexedwards.net/static/sb-v2.tar.gz | tar -xvz -C ./ui/static
+# 
+curl -i -H "Range: bytes=100-199" --output - http:/localhost:1111/static/img/logo.png
 go run ./cmd/web
 ```
 
@@ -30,8 +32,9 @@ go run ./cmd/web
 ## Static file server
 
 ```go
-// 2.8 Add static file server to main.go
+// 2.8 Add static file server to main.go. Path rel to dir root
 fileserver := http.FileServer(http.Dir("./ui/static/"))
+// register file server as handler and make sure it matches paths
 mux.Handle("/static/", http.StripPrefix("/static", fileserver))
 ```
 

@@ -15,6 +15,7 @@ func main() {
 	// static file server
 	fileserver := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static", fileserver))
+	mux.HandleFunc("/book", HandleDownloader)
 
 	mux.HandleFunc("/", HandleHome) // catch-all
 	mux.HandleFunc("/snippet/view", HandleViewSnippet)

@@ -17,6 +17,7 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 
 	files := []string{
 		"./ui/html/base.tmpl",
+		"./ui/html/partials/nav.tmpl",
 		"./ui/html/pages/home.tmpl",
 	}
 	ts, err := template.ParseFiles(files...)
@@ -81,4 +82,9 @@ func HandleCustomizeHeaders(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Header after deleting: %+v\n", w.Header())
 
 	w.Write([]byte(`{"name": "Alex"}`))
+}
+
+func HandleDownloader(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("downloading")
+	http.ServeFile(w, r, "./us/static/lets-go.epub")
 }
