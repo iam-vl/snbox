@@ -12,6 +12,10 @@ const (
 func main() {
 	mux := http.NewServeMux()
 
+	// static file server
+	fileserver := http.FileServer(http.Dir("./ui/static/"))
+	mux.Handle("/static/", http.StripPrefix("/static", fileserver))
+
 	mux.HandleFunc("/", HandleHome) // catch-all
 	mux.HandleFunc("/snippet/view", HandleViewSnippet)
 	mux.HandleFunc("/snippet/create", HandleCreateSnippet)
