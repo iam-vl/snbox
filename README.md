@@ -10,6 +10,14 @@ curl -i -H "Range: bytes=100-199" --output - http:/localhost:1111/static/img/log
 go run ./cmd/web
 ```
 
+## Misc 
+
+```
+// string to int and int 2 string
+i, err := strconv.Atoi("-42")
+s := strconv.Itoa(-42)
+```
+
 ## Template embedding 
 
 ```html
@@ -26,6 +34,13 @@ go run ./cmd/web
 <p>Nothing to see here yet!</p>
 {{ end }}
 ```
+Partials:
+```
+{{define "nav"}}
+<nav><a href='/>Home</a></nav>
+{{ end }}
+```
+in base: `{{ template "nav" . }}`
 
 
 
