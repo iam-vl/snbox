@@ -33,4 +33,21 @@ errorLog.Fatal(err)
 ```
 Can also use `log.Llongtime` and `log.LUTC flags`. 
 ```sh
+go run ./cmd/web >>/tmp/info.log 2>>/tmp/error.log
+```
+
+## Custom HTTP server 
+
+```go
+srv := &http.Server{
+    Addr:     *port,
+    ErrorLog: errorLog,
+    Handler:  mux,
+}
+// Need to dereference a pointer
+infoLog.Printf("Starting server on port: %s", *port)
+// below mux ~ handler // mux is a special kind of handler
+err := srv.ListenAndServe()
+// err := http.ListenAndServe(*port, mux)
+errorLog.Fatal(err)
 ```

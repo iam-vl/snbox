@@ -24,14 +24,17 @@ func main() {
 	mux.HandleFunc("/snippet/view", HandleViewSnippet)
 	mux.HandleFunc("/snippet/create", HandleCreateSnippet)
 	mux.HandleFunc("/head", HandleCustomizeHeaders)
+	// Custom http server
+	srv := &http.Server{
+		Addr:     *port,
+		ErrorLog: errorLog,
+		Handler:  mux,
+	}
 
 	// Need to dereference a pointer
 	infoLog.Printf("Starting server on port: %s", *port)
 	// below mux ~ handler // mux is a special kind of handler
-	err := http.ListenAndServe(*port, mux)
+	err := srv.ListenAndServe()
+	// err := http.ListenAndServe(*port, mux)
 	errorLog.Fatal(err)
-	// if err := http.ListenAndServe(os_port, mux); err != nil {
-	// if err := http.ListenAndServe(*port, mux); err != nil {
-	// log.Fatal(err) // also triggere os.Exit(1)
-	// }
 }
