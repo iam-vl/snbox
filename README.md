@@ -8,15 +8,22 @@ curl https://www.alexedwards.net/static/sb-v2.tar.gz | tar -xvz -C ./ui/static
 # 
 curl -i -H "Range: bytes=100-199" --output - http:/localhost:1111/static/img/logo.png
 go run ./cmd/web
+go run ./cmd/web -port=":1234" # ports 0...1023 bound
+go run ./cmd/web -help
 ```
 
 ## Misc 
 
-```
+```go
 // string to int and int 2 string
 i, err := strconv.Atoi("-42")
 s := strconv.Itoa(-42)
+port := flag.String("port", ":1111", "Server port") 
+// also flag.Int, flag.Bool, flag.Float64
+// flag.Bool() ~ def true
+-> go run ./example -flag
 ```
+
 
 ## Template embedding 
 
@@ -37,11 +44,10 @@ s := strconv.Itoa(-42)
 Partials:
 ```
 {{define "nav"}}
-<nav><a href='/>Home</a></nav>
+<nav><a href='/'>Home</a></nav>
 {{ end }}
 ```
 in base: `{{ template "nav" . }}`
-
 
 
 ## Static file server
