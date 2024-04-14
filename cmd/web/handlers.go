@@ -8,7 +8,8 @@ import (
 	"strconv"
 )
 
-func HandleHome(w http.ResponseWriter, r *http.Request) {
+func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
+	// func HandleHome(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -27,15 +28,18 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error parsing template", 500)
 	}
 	// if err := ts.Execute(w, nil); err != nil {
-	if err := ts.ExecuteTemplate(w, "base", nil); err != nil { // use base
-		log.Println(err.Error())
+	err = ts.ExecuteTemplate(w, "base", nil)
+	if err != nil { // use base
+		// log.Println(err.Error())
+		app.errorLog.Print(err.Error())
 		http.Error(w, "Internal Server Error", 500)
 	}
 	// w.Write([]byte("hello from snippetbox"))
 }
 
 // /snippet/view?id=123
-func HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+	// func HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
@@ -47,8 +51,9 @@ func HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
 	// w.Write([]byte(`{"name": "Alex", "id": %d}`))
 }
 
-// snippet/create
-func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
+// snippet/create - changed the
+// func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
+func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 	// Let's do POST
 	if r.Method != "POST" {
 		w.Header().Set("Allow", http.MethodPost)

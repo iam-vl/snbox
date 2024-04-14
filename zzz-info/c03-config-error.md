@@ -32,8 +32,19 @@ err := http.ListenAndServe(*port, mux)
 errorLog.Fatal(err)
 ```
 Can also use `log.Llongtime` and `log.LUTC flags`. 
+
+## Logging to a file 
+
 ```sh
 go run ./cmd/web >>/tmp/info.log 2>>/tmp/error.log
+```
+```go
+f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
+if err != nil {
+    log.Fatal(err)
+}
+defer f.Close()
+infoLog := log.New(f, "INFO\t", log.Ldate|log.Ltime)
 ```
 
 ## Custom HTTP server 
