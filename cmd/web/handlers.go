@@ -11,7 +11,8 @@ import (
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 	// func HandleHome(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		http.NotFound(w, r)
+		// http.NotFound(w, r)
+		app.NotFound(w)
 		return
 	}
 	fmt.Println("Starting home...")
@@ -25,14 +26,17 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 	// ts, err := template.ParseFiles("./ui/html/pages/home.tmpl")
 	if err != nil {
 		log.Panicln(err)
-		http.Error(w, "Error parsing template", 500)
+		// http.Error(w, "Error parsing template", 500)
+		app.ServerError(w, err)
+		return
 	}
 	// if err := ts.Execute(w, nil); err != nil {
 	err = ts.ExecuteTemplate(w, "base", nil)
 	if err != nil { // use base
 		// log.Println(err.Error())
-		app.errorLog.Print(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		app.ServerError(w, err)
+		// app.errorLog.Print(err.Error())
+		// http.Error(w, "Internal Server Error", 500)
 	}
 	// w.Write([]byte("hello from snippetbox"))
 }
@@ -43,7 +47,8 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
-		http.NotFound(w, r)
+		// http.NotFound(w, r)
+		app.NotFound(w)
 		return
 	}
 	// http.ResponseWriter (w.Write) <- io.Writer interface
