@@ -79,3 +79,21 @@ func ExampleHandler(app *config.Application) http.HandlerFunc {
     } 
 }
 ```
+
+## Tracing Errors 
+
+```
+ERROR   2024/04/15 08:56:06 helpers.go:15: open ./ui/html/pages/home.tmpl: The system cannot find the file specified.
+```
+Use `log.Output()`:
+```go
+func (app *application) ServerError(w http.ResponseWriter, err error) {
+	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
+	app.errorLog.Output(2, trace)
+	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+}
+```
+Result:
+```
+ERROR   2024/04/15 09:02:29 handlers.go:29: open ./ui/html/pages/home.tmpl: The system cannot find the file specified.
+```

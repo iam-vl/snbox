@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -12,7 +11,7 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 	// func HandleHome(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		// http.NotFound(w, r)
-		app.NotFound(w)
+		app.NotFound(w) // using NotFound() helper
 		return
 	}
 	fmt.Println("Starting home...")
@@ -25,7 +24,7 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 	ts, err := template.ParseFiles(files...)
 	// ts, err := template.ParseFiles("./ui/html/pages/home.tmpl")
 	if err != nil {
-		log.Panicln(err)
+		// log.Panicln(err)
 		// http.Error(w, "Error parsing template", 500)
 		app.ServerError(w, err)
 		return
@@ -52,7 +51,7 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 		return
 	}
 	// http.ResponseWriter (w.Write) <- io.Writer interface
-	fmt.Fprintf(w, "Displaying a snippet with id: %v...\n", id)
+	fmt.Fprintf(w, "Displaying a snippet with ID: %v...\n", id)
 	// w.Write([]byte(`{"name": "Alex", "id": %d}`))
 }
 
@@ -62,7 +61,8 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	// Let's do POST
 	if r.Method != "POST" {
 		w.Header().Set("Allow", http.MethodPost)
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		// http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		app.ClientError(w, http.StatusMethodNotAllowed) // using ClientError()
 		return
 		// VERSION 1
 		// w.WriteHeader(405) // you need resp code other than 200 OK

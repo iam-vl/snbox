@@ -12,7 +12,8 @@ func (app *application) ServerError(w http.ResponseWriter, err error) {
 	// Getting a stack trace for the current goroutine and appending it to the message.
 	// To see the execuition path of the app via the stack trace is useful when trying to debug errors
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-	app.errorLog.Print(trace)
+	// app.errorLog.Print(trace)
+	app.errorLog.Output(2, trace)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
