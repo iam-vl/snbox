@@ -43,6 +43,7 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 // /snippet/view?id=123
 func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
 	// func HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("starting view snippet")
 	w.Header().Set("Content-Type", "application/json")
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
