@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" // Not using it, but need the init() function
 )
 
 const (
@@ -23,7 +23,7 @@ type application struct {
 func main() {
 
 	port := flag.String("port", ":1111", "Server port")
-	dsnText := fmt.Sprintf("web:%s@/snbox?parseTime=true", pwd)
+	dsnText := fmt.Sprintf("web:%s@/snbox?parseTime=true&allowNativePasswords=true", pwd)
 	dsn := flag.String("dsn", dsnText, "sb_mysql_datasource")
 	flag.Parse() // can use port as a flag
 
@@ -57,7 +57,7 @@ func main() {
 }
 
 func openDb(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("mysql", dsn)
+	db, err := sql.Open("mysql", dsn) // Initializing connection pool
 	if err != nil {
 		return nil, err
 	}
@@ -65,5 +65,7 @@ func openDb(dsn string) (*sql.DB, error) {
 	if err := db.Ping(); err != nil {
 		return nil, err
 	}
+	fmt.Println("Ping successful")
+	fmt.Printf("Database: %+v\n", db)
 	return db, nil
 }
