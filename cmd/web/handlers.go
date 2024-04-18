@@ -60,6 +60,7 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 // func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 	// Let's do POST
+	fmt.Println("posting")
 	if r.Method != "POST" {
 		w.Header().Set("Allow", http.MethodPost)
 		// http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -70,7 +71,16 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 		// w.Write([]byte("Header not allowed"))
 		// return
 	}
-	w.Write([]byte("Creating a new snippet"))
+	title := "O snail"
+	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n- Kobayashi Issa"
+	expires := 7
+	id, err := app.snippets.Insert(title, content, expires)
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+	// w.Write([]byte("Creating a new snippet"))
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
 }
 
 // snippet/create
