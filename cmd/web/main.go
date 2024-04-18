@@ -1,10 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
+)
+
+const (
+	pwd = "vl#123pass"
 )
 
 type application struct {
@@ -13,11 +21,20 @@ type application struct {
 }
 
 func main() {
+
 	port := flag.String("port", ":1111", "Server port")
+	dsnText := fmt.Sprintf("web:%s@/snbox?parseTime=true", pwd)
+	dsn := flag.String("dsn", dsnText, "sb_mysql_datasource")
 	flag.Parse() // can use port as a flag
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	db, err := openDb(*dsn)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+	defer db.Close()
 
 	app := &application{
 		errorLog: errorLog,
@@ -34,7 +51,19 @@ func main() {
 	// Need to dereference a pointer
 	infoLog.Printf("Starting server on port: %s", *port)
 	// below mux ~ handler // mux is a special kind of handler
-	err := srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	// err := http.ListenAndServe(*port, mux)
 	errorLog.Fatal(err)
+}
+
+func openDb(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+	return db, nil
 }
