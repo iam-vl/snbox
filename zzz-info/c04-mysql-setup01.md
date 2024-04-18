@@ -76,3 +76,42 @@ DB.Exec() does the following:
 1. Creates and comiples a prepared statement
 2. Exec() passes the params to the statement
 3. Deallocates the prepared statement on the db
+
+## MySQL data conversions
+
+```
+CHAR, VARCHAR, TEXT -> string
+BOOLEAN -> bool 
+INT -> int; BIGINT -> int64
+DECIMAL / NUMERIC -> float
+TIME, DATE, TIMESTAMP -> time.Time
+```
+
+## Get by ID
+
+```go
+func (m *SnippetModel) Get(id int) (*Snippet, error) {
+	query := `SELECT id, title, content, created, expires FROM snippets WHERE expires > UTC_TIMESTAMP() AND id = ?`
+	row := m.DB.QueryRow(query, id)
+	s := &Snippet{}
+	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expired)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecords
+		} else {
+			return nil, err
+		}
+	}
+
+	return s, nil
+}
+```
+
+```
+go run ./cmd/web
+# github.com/iam-vl/snbox/internal/models
+internal/models/snippets.go:45:16: undefined: ErrNoRecords
+```
+
+
+
