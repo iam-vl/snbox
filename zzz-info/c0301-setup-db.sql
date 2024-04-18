@@ -1,8 +1,8 @@
 mysql -u root -p
-create database SNBOX character set utf8mb4 collate utf8mb4_unicode_ci;
-use SNBOX;
+CREATE DATABASE snbox character set utf8mb4 collate utf8mb4_unicode_ci;
+USE snbox;
 
-create table SNIPPETS (
+create table snippets (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(100) NOT NULL,
     content TEXT NOT NULL,
@@ -35,8 +35,16 @@ INSERT INTO snippets (title,content,created,expires) VALUES (
 );
 
 -- CREATE A NEW USER
-CREATE USER 'web'@'localhost';
-GRANT SELECT, INSERT, UPDATE, DELETE ON SNBOX.* TO 'web'@'localhost';
-ALTER USER 'web'@'localhost' IDENTIFIED BY 'vl#123pass'
+CREATE USER 'web'@'localhost' IDENTIFIED WITH mysql_native_password BY 'vl#123pass';
+GRANT SELECT, INSERT, UPDATE, DELETE ON snbox.* TO 'web'@'localhost';
+-- ALTER USER 'web'@'localhost' IDENTIFIED BY 'vl#123pass';
+
+-- mysql -D snbox -u web -p
+
+SHOW COLUMNS FROM snippets;
+select id, title, expires from snippets;
+
+DROP TABLE snippets;
+-- ERROR 1142 (42000): DROP command denied to user 'web'@'localhost' for table 'snippets'
 
 
