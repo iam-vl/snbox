@@ -54,9 +54,25 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	}
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
 }
+
+func (m *SnippetModel) Insert(title string, content string, expires int) (int, error) {
+	query := `INSERT INTO snippets (title, content, created, expires) VALUES(?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? DAY))`
+	result, err := m.DB.Exec(query, title, content, expires)
+	if err != nil {
+		return 0, err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(id), nil
+}
 ```
 
 ```
 curl -iL -X POST http://localhost:1111/snippet/create
 ```
-
+DB.Exec() does the following:
+1. Creates and comiples a prepared statement
+2. Exec() passes the params to the statement
+3. Deallocates the prepared statement on the db
