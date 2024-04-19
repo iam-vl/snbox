@@ -184,3 +184,47 @@ func (m *ExampleModel) ExampleTransaction() error {
 	return err
 }
 ```
+
+## Prepared statements 
+
+Create prepared statement using `DB.Prepare()`. Can embed in the model:
+```go
+type ExampleModel struct {
+	DB *sql.DB
+	InsertStmt *sql.Stmt
+}
+func NewExampleModel(db *sql.DB) (*ExampleModel, error) {
+	insertStmt, err := db.Prepare("INSERT INTO...")
+	if err != nil {
+		return nil, err
+	}
+	return &ExampleModel{db, insertStmt}, nil
+} 
+func (m *ExampleModel) Insert(args...) error {
+	// Calling Exec directly against the prepared statement
+	// Works for Query and QueryRow too
+	_, err := m.InsertrStmt.Exec(args...)
+	return err
+}
+```
+Using prep statement:
+```go 
+func main() {
+	db, err := sql.Open(...)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+	defer db.Close()
+	exampleModel, err := NewExampleModel(db) // mnew exampleModel includes the prepared statement
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+	// -> prepared statement will be properly closed
+	defer exampleModel.InsertStmt.Close() 
+}
+```
+>**Note:**
+>*Heavy load notice: Go uses a pool of many db connections.\
+>When used the first tiome the pre stmt gets createwd on a db connection. 
+>Sql.stmt remembers the connection. If it closes -> have to reprepare
+>For the most part, simple Exec, Query, QueryRow are a good starting point
