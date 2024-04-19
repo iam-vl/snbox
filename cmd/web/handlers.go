@@ -3,9 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
-	"text/template"
 
 	"github.com/iam-vl/snbox/internal/models"
 )
@@ -63,7 +63,7 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
 	// func HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("starting view snippet")
-	w.Header().Set("Content-Type", "application/json")
+	// w.Header().Set("Content-Type", "application/json")
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		// http.NotFound(w, r)

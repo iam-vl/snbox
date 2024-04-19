@@ -7,4 +7,4 @@ go 1.22.1
 // 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 // )
 
-require github.com/go-sql-driver/mysql v1.7.0 // indirect
+require github.com/go-sql-driver/mysql v1.7.0
