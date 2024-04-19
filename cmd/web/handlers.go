@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"text/template"
 
 	"github.com/iam-vl/snbox/internal/models"
 )
@@ -79,7 +80,22 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
-	fmt.Fprintf(w, "%+v", snippet)
+	// set up template paths, and parse the templates
+	files := []string{
+		"./ui/html/base.tmpl",
+		"./ui/html/pages/view.tmpl",
+		"./ui/html/partials/nav.tmpl",
+	}
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+	err = ts.ExecuteTemplate(w, "base", snippet)
+	if err != nil {
+		app.ServerError(w, err)
+	}
+	// fmt.Fprintf(w, "%+v", snippet)
 
 	// http.ResponseWriter (w.Write) <- io.Writer interface
 	// fmt.Fprintf(w, "Displaying a snippet with ID: %v...\n", id)
@@ -103,7 +119,7 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	}
 	title := "O snail"
 	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n- Kobayashi Issa"
-	expires := 7
+	expires := 14
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.ServerError(w, err)

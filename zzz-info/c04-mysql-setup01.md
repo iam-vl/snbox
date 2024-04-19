@@ -225,6 +225,6 @@ func main() {
 ```
 >**Note:**
 >*Heavy load notice: Go uses a pool of many db connections.\
->When used the first tiome the pre stmt gets createwd on a db connection. 
+>When used the first tiome the prep'd stmt gets createwd on a db connection. 
 >Sql.stmt remembers the connection. If it closes -> have to reprepare
 >For the most part, simple Exec, Query, QueryRow are a good starting point
