@@ -154,3 +154,33 @@ type Book struct {
 	...
 }
 ```
+
+## Working with transactions 
+Lock & unlock tables
+
+```go
+type ExampleModel struct {
+	DB *sql.DB
+}
+func (m *ExampleModel) ExampleTransaction() error {
+	tx, err := m.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback() // will roll back change if error
+	query1 := `INSERT INTO...`
+	query2 := `UPDATE...`
+
+	_, err = tx.Exec(query1)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(query2)
+	if err != nil {
+		return err
+	}
+	// Commit if no errors
+	err = tx.Commit() // Always call Rollback() or Commit() before yr function returns
+	return err
+}
+```
