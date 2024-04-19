@@ -113,5 +113,17 @@ go run ./cmd/web
 internal/models/snippets.go:45:16: undefined: ErrNoRecords
 ```
 
+## Errors 
 
+```go
+if errors.Is(err, sql.ErrNoRows) {
+	return nil, ErrNoRecord
+} else {
+	return nil, err
+}
+
+```
+
+```go
+```
 

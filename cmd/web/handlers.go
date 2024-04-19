@@ -1,10 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
+
+	"github.com/iam-vl/snbox/internal/models"
 )
 
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
@@ -51,8 +54,20 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 		app.NotFound(w)
 		return
 	}
+	// Use SnippetModel's Get
+	snippet, err := app.snippets.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.NotFound(w)
+		} else {
+			app.ServerError(w, err)
+		}
+		return
+	}
+	fmt.Fprintf(w, "%+v", snippet)
+
 	// http.ResponseWriter (w.Write) <- io.Writer interface
-	fmt.Fprintf(w, "Displaying a snippet with ID: %v...\n", id)
+	// fmt.Fprintf(w, "Displaying a snippet with ID: %v...\n", id)
 	// w.Write([]byte(`{"name": "Alex", "id": %d}`))
 }
 

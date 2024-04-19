@@ -42,7 +42,7 @@ func (m *SnippetModel) Get(id int) (*Snippet, error) {
 	err := row.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expired)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoRecords
+			return nil, ErrNoRecord
 		} else {
 			return nil, err
 		}
