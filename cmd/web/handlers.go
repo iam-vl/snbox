@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strconv"
 
@@ -11,37 +10,53 @@ import (
 )
 
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
-	// func HandleHome(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
-		// http.NotFound(w, r)
-		app.NotFound(w) // using NotFound() helper
+		app.NotFound(w)
 		return
 	}
-	fmt.Println("Starting home...")
-
-	files := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/home.tmpl",
-	}
-	ts, err := template.ParseFiles(files...)
-	// ts, err := template.ParseFiles("./ui/html/pages/home.tmpl")
+	snippets, err := app.snippets.Latest10()
 	if err != nil {
-		// log.Panicln(err)
-		// http.Error(w, "Error parsing template", 500)
 		app.ServerError(w, err)
 		return
 	}
-	// if err := ts.Execute(w, nil); err != nil {
-	err = ts.ExecuteTemplate(w, "base", nil)
-	if err != nil { // use base
-		// log.Println(err.Error())
-		app.ServerError(w, err)
-		// app.errorLog.Print(err.Error())
-		// http.Error(w, "Internal Server Error", 500)
+	for _, snippet := range snippets {
+		fmt.Fprintf(w, "%+v\n", snippet)
 	}
-	// w.Write([]byte("hello from snippetbox"))
 }
+
+// func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
+// 	// func HandleHome(w http.ResponseWriter, r *http.Request) {
+// 	if r.URL.Path != "/" {
+// 		// http.NotFound(w, r)
+// 		app.NotFound(w) // using NotFound() helper
+// 		return
+// 	}
+// 	fmt.Println("Starting home...")
+
+// 	files := []string{
+// 		"./ui/html/base.tmpl",
+// 		"./ui/html/partials/nav.tmpl",
+// 		"./ui/html/pages/home.tmpl",
+// 	}
+// 	ts, err := template.ParseFiles(files...)
+// 	// ts, err := template.ParseFiles("./ui/html/pages/home.tmpl")
+// 	if err != nil {
+// 		// log.Panicln(err)
+// 		// http.Error(w, "Error parsing template", 500)
+// 		app.ServerError(w, err)
+// 		return
+// 	}
+// 	// if err := ts.Execute(w, nil); err != nil {
+// 	err = ts.ExecuteTemplate(w, "base", nil)
+// 	if err != nil { // use base
+
+// 		app.ServerError(w, err)
+// 		// log.Println(err.Error())
+// 		// app.errorLog.Print(err.Error())
+// 		// http.Error(w, "Internal Server Error", 500)
+// 	}
+// 	// w.Write([]byte("hello from snippetbox"))
+// }
 
 // /snippet/view?id=123
 func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
