@@ -115,15 +115,42 @@ internal/models/snippets.go:45:16: undefined: ErrNoRecords
 
 ## Errors 
 
+Recommended way: since 1.13 can add additional info by wrapping errors.
 ```go
-if errors.Is(err, sql.ErrNoRows) {
-	return nil, ErrNoRecord
+if errors.Is(err, models.ErrNoRecord) {
+	app.NotFound(w)
 } else {
-	return nil, err
+	app.ServerError(w, err)
+}
+```
+Same as: 
+```go
+if err == models.ErrNoRecord {
+	app.NotFound(w)
+} else {
+	app.ServerError(w, err)
 }
 
 ```
+Also: `errors.As()` - can check if an error has a specific type. 
+
+## Manage null values
+
+Scanning a null value: 
 
 ```go
+err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+```
+Res:
+```
+sql.Scan error ...
 ```
 
+Solution: sqlNullString 
+```go
+type Book struct {
+	Isbn string
+	Title sql.NullString
+	...
+}
+```
