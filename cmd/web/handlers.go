@@ -83,8 +83,8 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 	// set up template paths, and parse the templates
 	files := []string{
 		"./ui/html/base.tmpl",
-		"./ui/html/pages/view.tmpl",
 		"./ui/html/partials/nav.tmpl",
+		"./ui/html/pages/view.tmpl",
 	}
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
