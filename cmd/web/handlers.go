@@ -91,7 +91,12 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 		app.ServerError(w, err)
 		return
 	}
-	err = ts.ExecuteTemplate(w, "base", snippet)
+	// Create TemplateData
+	data := &templateData{
+		Snippet: snippet,
+	}
+	/// err = ts.ExecuteTemplate(w, "base", snippet)
+	err = ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.ServerError(w, err)
 	}
