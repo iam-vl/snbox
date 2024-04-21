@@ -19,10 +19,11 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 		app.ServerError(w, err)
 		return
 	}
+	data := app.NewTemplateData(r)
+	data.Snippets = snippets
 	// Use render helper
-	app.Render(w, http.StatusOK, "home.tmpl", &templateData{
-		Snippets: snippets,
-	})
+	fmt.Printf("Year: %+v\n", data.CurrentYear)
+	app.Render(w, http.StatusOK, "home.tmpl", data)
 	// files := []string{
 	// 	"./ui/html/base.tmpl",
 	// 	"./ui/html/partials/nav.tmpl",
@@ -63,9 +64,9 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
-	app.Render(w, http.StatusOK, "view.tmpl", &templateData{
-		Snippet: snippet,
-	})
+	data := app.NewTemplateData(r)
+	data.Snippet = snippet
+	app.Render(w, http.StatusOK, "view.tmpl", data)
 }
 
 // snippet/create - changed the

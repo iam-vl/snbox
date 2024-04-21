@@ -5,7 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 )
+
+func (app *application) NewTemplateData(r *http.Request) *templateData {
+	return &templateData{
+		CurrentYear: time.Now().Year(),
+	}
+}
 
 func (app *application) Render(w http.ResponseWriter, status int, page string, tData *templateData) {
 	ts, ok := app.templateCache[page]
