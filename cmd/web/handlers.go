@@ -20,8 +20,22 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 		app.ServerError(w, err)
 		return
 	}
-	for _, snippet := range snippets {
-		fmt.Fprintf(w, "%+v\n", snippet)
+	files := []string{
+		"./ui/html/base.tmpl",
+		"./ui/html/partials/nav.tmpl",
+		"./ui/html/pages/home.tmpl",
+	}
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+	data := &templateData{
+		Snippets: snippets,
+	}
+	err = ts.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.ServerError(w, err)
 	}
 }
 
@@ -61,12 +75,16 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 
 // /snippet/view?id=123
 func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+	// func HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("starting view snippet")
+	// w.Header().Set("Content-Type", "application/json")
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		// http.NotFound(w, r)
 		app.NotFound(w)
 		return
 	}
+	// Use SnippetModel's Get
 	snippet, err := app.snippets.Get(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
@@ -79,19 +97,20 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 	// set up template paths, and parse the templates
 	files := []string{
 		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
 		"./ui/html/pages/view.tmpl",
+		"./ui/html/partials/nav.tmpl",
 	}
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
 		app.ServerError(w, err)
 		return
 	}
-	// template data struct (must contain the snippet data)
-	// data := &templateData{
-	// 	Snippet: snippet,
-	// }
-	err = ts.ExecuteTemplate(w, "base", snippet)
+	// Create TemplateData
+	data := &templateData{
+		Snippet: snippet,
+	}
+	/// err = ts.ExecuteTemplate(w, "base", snippet)
+	err = ts.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		app.ServerError(w, err)
 	}
