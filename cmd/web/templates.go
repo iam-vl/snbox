@@ -38,3 +38,31 @@ func NewTemplateCache() (map[string]*template.Template, error) {
 	}
 	return cache, nil
 }
+
+func NTCache() (map[string]*template.Template, error) {
+	cache := map[string]*template.Template{}
+	pages, err := filepath.Glob("./ui/html/pages/*.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, page := range pages {
+		name := filepath.Base(page)
+		// Add base templ
+		ts, err := template.ParseFiles("./ui/html/base.tmpl")
+		if err != nil {
+			return nil, err
+		}
+		ts, err = template.ParseFiles(page)
+		if err != nil {
+			return nil, err
+		}
+		ts, err = template.ParseGlob("./ui/html/partials/*.tmpl")
+		if err != nil {
+			return nil, err
+		}
+		cache[name] = ts
+
+	}
+	return cache, nil
+}
