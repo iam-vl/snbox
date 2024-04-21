@@ -6,6 +6,20 @@ import (
 	"runtime/debug"
 )
 
+func (app *application) Render(w http.ResponseWriter, status int, page string, tData *templateData) {
+	ts, ok := app.templateCache[page]
+	if !ok {
+		err := fmt.Errorf("the template %s doesn't exist", page)
+		app.ServerError(w, err)
+		return
+	}
+	w.WriteHeader(status)
+	err := ts.ExecuteTemplate(w, "base", tData)
+	if err != nil {
+		app.ServerError(w, err)
+	}
+}
+
 // ServerError helper writes and error message and a stack trace to error log
 // then sends a generic 500 Internal Server Error response to user
 func (app *application) ServerError(w http.ResponseWriter, err error) {
