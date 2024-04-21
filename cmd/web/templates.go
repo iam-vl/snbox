@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"path/filepath"
 
@@ -40,6 +41,7 @@ func NewTemplateCache() (map[string]*template.Template, error) {
 }
 
 func NTCache() (map[string]*template.Template, error) {
+	fmt.Println("Starting ntcache... ")
 	cache := map[string]*template.Template{}
 	pages, err := filepath.Glob("./ui/html/pages/*.tmpl")
 	if err != nil {
