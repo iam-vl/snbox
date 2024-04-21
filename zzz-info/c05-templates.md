@@ -44,5 +44,62 @@ Action | Descr
 `{{$bar := len .Foo }}` | Assign `len(.Foo)` to var `$bar`
 
 
+## Templates 
+
+Add error to a template:
+```html
+{{define "title"}}Snippet #{{.Snippet.ID}}{{end}}
+{{define "main"}}
+{{ with .Snippet }}
+<div class="snippet">
+    <div class="metadata">
+        <strong>{{.Title}}</strong>
+        <span>#{{.ID}}</span>
+    </div>
+    {{ len nil }} <!-- Deliberate error (nil doesn't have length) -->
+    <!-- ... -->
+{{end}}
+{{end}}
+```
+Query:
+
+```
+curl -i "http://localhost:1111/snippet/view?id=2"
+HTTP/1.1 200 OK
+Date: Sun, 21 Apr 2024 09:27:16 GMT
+Content-Length: 725
+Content-Type: text/html; charset=utf-8
 
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./static/css/main.css">
+    <link rel="shortcut icon" href="./static/img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700">
+    <title>Snippet #2 - Snippetbox</title>
+</head>
+<body>
+    <header>
+        <h1><a href="/">S-BOX</a></h1>
+    </header>
+    
+<nav>
+    <a href="/">Home</a>
+</nav>
+
+    <main>
+        
+
+<div class="snippet">
+    <div class="metadata">
+        <strong>Over the wintry forest</strong>
+        <span>#2</span>
+    </div>
+    Internal Server Error
+```
+Sol: 
+1. Make a trial render by writing templ into a buff
+2. If fails: err; if works: write to response writer
