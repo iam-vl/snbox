@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"github.com/iam-vl/snbox/internal/models"
 )
@@ -16,9 +17,16 @@ type templateData struct {
 	Snippets    []*models.Snippet
 }
 
+func HumanDate(t time.Time) string {
+	return t.Format("02 Jan 2006 at 15:04")
+}
+
+var Functions = template.FuncMap{
+	"humanDate": HumanDate,
+}
+
 func NewTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
-	// Get a slice of all filepaths that match "./ui/html/pages/*.tmpl"
 	pages, err := filepath.Glob("./ui/html/pages/*.tmpl")
 	if err != nil {
 		return nil, err
@@ -26,13 +34,21 @@ func NewTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		// Extract filename
 		name := filepath.Base(page)
-		files := []string{
-			"./ui/html/base.tmpl",
-			"./ui/html/partials/nav.tmpl",
-			page,
+		ts, err := template.New(name).Funcs(Functions).ParseFiles("./ui/html/base.html")
+		if err != nil {
+			return nil, err
 		}
-		// Parse files into a template set
-		ts, err := template.ParseFiles(files...)
+		// files := []string{
+		// 	"./ui/html/base.tmpl",
+		// 	"./ui/html/partials/nav.tmpl",
+		// 	page,
+		// }
+		// ts, err := template.ParseFiles(files...)
+		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl")
+		if err != nil {
+			return nil, err
+		}
+		ts, err = ts.ParseFiles(page)
 		if err != nil {
 			return nil, err
 		}
