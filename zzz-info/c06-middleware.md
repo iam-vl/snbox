@@ -22,5 +22,15 @@ func myMiddleware(next http.Handler) http.Handler {
 
 ## Patterns  
 
-Middleware -> Servemux -> app handler // All requests (fe logger)
+Middleware -> Servemux -> app handler // All requests (fe logger) - wrap servemux
 Servemux -> middleware > app handler // Requests for specific routes (fe auth)
+
+## Example headers 
+
+```
+Content-Security-Policy: default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com
+Referrer-Policy: origin-when-cross-origin
+X-Content-Type: nosniff
+X-Frame-Options: deny
+X-XSS-Protection: 0
+```

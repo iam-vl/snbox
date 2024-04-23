@@ -2,7 +2,8 @@ package main
 
 import "net/http"
 
-func (app *application) routes() *http.ServeMux {
+// func (app *application) routes() *http.ServeMux {
+func (app *application) routes() http.Handler {
 	mux := http.NewServeMux()
 	// os_port := os.Getenv("SBOX_PORT")
 
@@ -16,6 +17,6 @@ func (app *application) routes() *http.ServeMux {
 	mux.HandleFunc("/snippet/create", app.HandleCreateSnippet)
 	mux.HandleFunc("/head", HandleCustomizeHeaders)
 
-	return mux
+	return SecureHeaders(mux)
 
 }
