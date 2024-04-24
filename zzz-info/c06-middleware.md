@@ -69,7 +69,7 @@ CSP headers - blocked by resources - use browser console. Example:
 Content Security Policy: the page's settings blocked the loading of a resource at https://... (ex google fonts)
 ```
 
-## Logging HTTP requests 
+## Logging HTTP requests (6.3)
 
 One more mware:  
 ```go
@@ -82,4 +82,47 @@ func (app *application) LogRequest(next http.Handler) http.Handler {
 // Routes 
 // LogRequest <-> SecureHeaders <-> servemux <-> handlers
 return app.LogRequest(SecureHeaders(mux))
+```
+
+## Panic recovery (6.4)
+
+Panic -> application terminated straight away. 
+HTTP server assumes: effect of any panic isolated to the goroutine serving the HTTP request. 
+Will log a stack trace unwind  the stag to the affected goroutine and close the http conn. 
+what if pany in a handler?
+
+```go
+func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		app.NotFound(w)
+		return
+	}
+	panic("oops! something went wrong") // deliverate panic
+	snippets, err := app.snippets.Latest10()
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+	data := app.NewTemplateData(r)
+	data.Snippets = snippets
+	fmt.Printf("Year: %+v\n", data.CurrentYear)
+	app.Render(w, http.StatusOK, "home.tmpl", data)
+
+}
+```
+```sh
+$ curl -i http://localhost:1111
+curl: (52) Empty reply from server # poor - let's dp a 500
+```
+```
+Ping successful
+INFO    2024/04/24 01:36:24 Starting server on port: :1111
+INFO    2024/04/24 01:36:52 127.0.0.1:41798 - HTTP/1.1 GET /
+ERROR   2024/04/24 01:36:52 server.go:3411: http: panic serving 127.0.0.1:41798: oops! something went wrong
+goroutine 8 [running]:
+net/http.(*conn).serve.func1()
+        /snap/go/10585/src/net/http/server.go:1898 +0xbe
+panic({0x781d60?, 0x89cbb0?})
+        /snap/go/10585/src/runtime/panic.go:770 +0x132
+...
 ```
