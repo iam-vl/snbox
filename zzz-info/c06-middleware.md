@@ -126,3 +126,31 @@ panic({0x781d60?, 0x89cbb0?})
         /snap/go/10585/src/runtime/panic.go:770 +0x132
 ...
 ```
+Lets add some middleware:
+```go
+func (app *application) RecoverPanic(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			// use built-in recover() to find out if there os panic or not
+			err := recover()
+			if err != nil {
+				w.Header().Set("Connection", "close")
+				// call app to return 500 Server Error
+				app.ServerError(w, fmt.Errorf("%s", err))
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+// Update routes:
+return app.RecoverPanic(app.LogRequest(SecureHeaders(mux))) 
+```
+Result
+```sh
+osboxes@osboxes:~$ curl -i http://localhost:1111
+HTTP/1.1 500 Internal Server Error
+Connection: close
+Content-Security-Policy: default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com
+...
+Internal Server Error
+```
