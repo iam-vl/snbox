@@ -154,3 +154,24 @@ Content-Security-Policy: default-src 'self'; style-src 'self' fonts.googleapis.c
 ...
 Internal Server Error
 ```
+
+## Panic reco in other backgr routines 
+
+Prevous mware: only in the same goroutine 
+But if handler spins a new goroutine... it wont catch that panic -> exit and bring down server 
+Example solution: add a recovery func to that handler
+```go
+func myHandler(w http.ResponseWriter, r *http.Request) {
+	// Do something
+	go func() {
+		defer func() {
+			err := recover()
+			if err != nil {
+				log.Print(fmt.Errorf("%s\n%s", err, debug.Stack()))
+			}
+		}()
+		doSomeBackgroundProcessing()
+	}()
+	w.Write([]byte("OK"))
+}
+```
