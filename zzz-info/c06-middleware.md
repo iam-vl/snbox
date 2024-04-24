@@ -34,3 +34,35 @@ X-Content-Type: nosniff
 X-Frame-Options: deny
 X-XSS-Protection: 0
 ```
+
+## Misc CH 6.2 
+
+### Flow of control 
+
+```sh
+# Original flow:
+SecureHeaders -> servemux -> app handlers
+# After flow: 
+SecureHeaders -> servemux -> app handlers -> servemux -> secureheaders
+```
+
+### Early returns 
+Example:  
+```go
+func myMiddleware(next http.Handler) http.Handler {
+    return http.Handler(func(w http.ResponseWriter, r *http.Request) {
+        // If user isn't authd, send 403 and return to stop executing chain
+        if !isAuthorized(r) {
+            w.WriteHeader(http.StatusForbidden)
+            return
+        }
+        // otherwise call next handler
+        next.ServeHTTP(w, r)
+    })
+}
+```
+
+### Debug CSP issues
+
+CSP headers - blocked by resources - use console.
+
