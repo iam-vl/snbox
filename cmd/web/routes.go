@@ -17,6 +17,7 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/snippet/create", app.HandleCreateSnippet)
 	mux.HandleFunc("/head", HandleCustomizeHeaders)
 
-	return SecureHeaders(mux)
+	// LogRequest <-> SecureHeaders <-> servemux <-> handlers
+	return app.LogRequest(SecureHeaders(mux))
 
 }

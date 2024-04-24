@@ -64,5 +64,22 @@ func myMiddleware(next http.Handler) http.Handler {
 
 ### Debug CSP issues
 
-CSP headers - blocked by resources - use console.
+CSP headers - blocked by resources - use browser console. Example: 
+```
+Content Security Policy: the page's settings blocked the loading of a resource at https://... (ex google fonts)
+```
 
+## Logging HTTP requests 
+
+One more mware:  
+```go
+func (app *application) LogRequest(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.infoLog.Printf("%s - %s %s %s\n", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())
+		next.ServeHTTP(w, r)
+	})
+}
+// Routes 
+// LogRequest <-> SecureHeaders <-> servemux <-> handlers
+return app.LogRequest(SecureHeaders(mux))
+```
