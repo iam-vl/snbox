@@ -18,6 +18,6 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/head", HandleCustomizeHeaders)
 
 	// LogRequest <-> SecureHeaders <-> servemux <-> handlers
-	return app.LogRequest(SecureHeaders(mux))
+	return app.RecoverPanic(app.LogRequest(SecureHeaders(mux)))
 
 }

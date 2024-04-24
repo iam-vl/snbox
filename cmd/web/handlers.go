@@ -14,7 +14,7 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 		app.NotFound(w)
 		return
 	}
-	panic("oops! something went wrong") // deliverate panic
+	// panic("oops! something went wrong") // deliverate panic
 	snippets, err := app.snippets.Latest10()
 	if err != nil {
 		app.ServerError(w, err)
