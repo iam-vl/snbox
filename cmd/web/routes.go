@@ -1,6 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/justinas/alice"
+)
 
 // func (app *application) routes() *http.ServeMux {
 func (app *application) routes() http.Handler {
@@ -18,6 +22,8 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/head", HandleCustomizeHeaders)
 
 	// LogRequest <-> SecureHeaders <-> servemux <-> handlers
-	return app.RecoverPanic(app.LogRequest(SecureHeaders(mux)))
+	mwareChain := alice.New(app.RecoverPanic, app.LogRequest, SecureHeaders)
+	return mwareChain.Then(mux)
+	// return app.RecoverPanic(app.LogRequest(SecureHeaders(mux)))
 
 }

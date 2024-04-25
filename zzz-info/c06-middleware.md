@@ -175,3 +175,26 @@ func myHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK"))
 }
 ```
+
+## CH 6.5 Composable middleware chains 
+
+```
+go get github.com/justinas/alice@v1
+```
+
+```go
+// Original
+return MyMiddleware1(MyMiddleware2(MyMiddleware3(MyHandler)))
+// Transform
+return alice.New(MyMiddleware1, MyMiddleware2,MyMiddleware3).Then(MyHandler)
+// Or:
+ChainStart := alice.New(MyMiddleware1, MyMiddleware2)
+ChainFinal := ChainStart.Append(MyMiddleware3)
+return ChainFinal.Then(MyHandler)
+```
+
+Result in `routes.go`:
+```go
+mwareChain := alice.New(app.RecoverPanic, app.LogRequest, SecureHeaders)
+return mwareChain.Then(mux)
+```
