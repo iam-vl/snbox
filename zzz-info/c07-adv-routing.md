@@ -113,3 +113,6 @@ Content-Length: 19
 
 Method Not Allowed
 ```
+
+## 404 Oddity 
+
