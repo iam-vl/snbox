@@ -7,13 +7,14 @@ import (
 	"strconv"
 
 	"github.com/iam-vl/snbox/internal/models"
+	"github.com/julienschmidt/httprouter"
 )
 
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		app.NotFound(w)
-		return
-	}
+	// if r.URL.Path != "/" {
+	// 	app.NotFound(w)
+	// 	return
+	// }
 	// panic("oops! something went wrong") // deliverate panic
 	snippets, err := app.snippets.Latest10()
 	if err != nil {
@@ -25,31 +26,13 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 	// Use render helper
 	fmt.Printf("Year: %+v\n", data.CurrentYear)
 	app.Render(w, http.StatusOK, "home.tmpl", data)
-	// files := []string{
-	// 	"./ui/html/base.tmpl",
-	// 	"./ui/html/partials/nav.tmpl",
-	// 	"./ui/html/pages/home.tmpl",
-	// }
-	// ts, err := template.ParseFiles(files...)
-	// if err != nil {
-	// 	app.ServerError(w, err)
-	// 	return
-	// }
-	// data := &templateData{
-	// 	Snippets: snippets,
-	// }
-	// err = ts.ExecuteTemplate(w, "base", data)
-	// if err != nil {
-	// 	app.ServerError(w, err)
-	// }
 }
 
 // /snippet/view?id=123
 func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
-	// func HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("starting view snippet")
-	// w.Header().Set("Content-Type", "application/json")
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	params := httprouter.ParamsFromContext(r.Context())
+	id, err := strconv.Atoi(params.ByName("id"))
+	// id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil || id < 1 {
 		// http.NotFound(w, r)
 		app.NotFound(w)
@@ -70,31 +53,25 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 	app.Render(w, http.StatusOK, "view.tmpl", data)
 }
 
+func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Form for a new snippet..."))
+}
+
 // snippet/create - changed the
 // func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
-	// Let's do POST
-	fmt.Println("posting")
-	if r.Method != "POST" {
-		w.Header().Set("Allow", http.MethodPost)
-		// http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		app.ClientError(w, http.StatusMethodNotAllowed) // using ClientError()
-		return
-		// VERSION 1
-		// w.WriteHeader(405) // you need resp code other than 200 OK
-		// w.Write([]byte("Header not allowed"))
-		// return
-	}
+	// No need to check for POst anymore
 	title := "O snail"
 	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n- Kobayashi Issa"
-	expires := 14
+	expires := 2
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.ServerError(w, err)
 		return
 	}
 	// w.Write([]byte("Creating a new snippet"))
-	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
+	// http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
 
 // snippet/create
