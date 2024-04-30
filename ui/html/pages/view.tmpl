@@ -1,19 +1,19 @@
 {{define "title"}}Snippet #{{.Snippet.ID}}{{end}}
 
 {{define "main"}}
-{{ with .Snippet }}
-<div class="snippet">
-    <div class="metadata">
-        <strong>{{.Title}}</strong>
-        <span>#{{.ID}}</span>
-    </div>
-    <pre><code>{{.Content}}</code></pre>
-    <div class="metadata">
-        <time>Created: {{humanDate .Created}}</time><br>
-        <time>Expires: {{humanDate .Expires}}</time><br>
-        <time>{{.Expires | humanDate | printf "Expires: %s\n"}}</time>
+    {{ with .Snippet }}
+    <div class="snippet">
+        <div class="metadata">
+            <strong>{{.Title}}</strong>
+            <span>#{{.ID}}</span>
+        </div>
+        <pre><code>{{.Content}}</code></pre>
+        <div class="metadata">
+            <time>Created: {{humanDate .Created}}</time><br>
+            <time>Expires: {{humanDate .Expires}}</time><br>
+            <time>{{.Expires | humanDate | printf "Expires: %s\n"}}</time>
 
+        </div>
     </div>
-</div>
-{{ end }}
+    {{ end }}
 {{end}}

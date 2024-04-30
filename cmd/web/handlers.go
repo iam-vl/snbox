@@ -61,10 +61,19 @@ func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request
 // snippet/create - changed the
 // func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
-	// No need to check for POst anymore
-	title := "O snail"
-	content := "O snail\nClimb Mount Fuji,\nBut slowly, slowly!\n\n- Kobayashi Issa"
-	expires := 2
+	// Will add post content to r.PostForm
+	err := r.ParseForm()
+	if err != nil {
+		app.ClientError(w, http.StatusBadRequest)
+		return
+	}
+	title := r.PostForm.Get("title")
+	content := r.PostForm.Get("content")
+	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	if err != nil {
+		app.ClientError(w, http.StatusBadRequest)
+		return
+	}
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.ServerError(w, err)
