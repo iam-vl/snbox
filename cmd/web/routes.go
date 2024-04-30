@@ -10,6 +10,7 @@ import (
 // func (app *application) routes() *http.ServeMux {
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
+	
 	// Create a handler function which wraps our notFound() helper, and then
 	// assign it as the custom handler for 404 Not Found responses. You can also
 	// set a custom handler for 405 Method Not Allowed responses by setting

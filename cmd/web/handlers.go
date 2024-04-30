@@ -54,7 +54,8 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Form for a new snippet..."))
+	data := app.NewTemplateData(r)
+	app.Render(w, http.StatusOK, "create.tmpl", data)
 }
 
 // snippet/create - changed the

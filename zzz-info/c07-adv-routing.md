@@ -145,3 +145,13 @@ $ curl http://localhost:1111/snippet/view/111
 Not Found
 ```
 
+## Conflicting routes
+
+Use `chi`. 
+>**Conflicting routes:**
+>`httprouter` doesn’t allow conflicting route patterns which potentially match the same request. So, for example, you cannot register a route like `GET /foo/new` and another route with a named parameter segment or catch-all parameter that conflicts with it — like `GET /foo/:name` or `GET /foo/*name`. Use chi instead.
+
+
+
+Customizing httprouter behavior
+The httprouter package provides a few configuration options that you can use to customize the behavior of your application further, including enabling trailing slash redirects and enabling automatic URL path cleaning. More info: https://pkg.go.dev/github.com/julienschmidt/httprouter#Router
