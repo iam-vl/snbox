@@ -18,15 +18,18 @@ type templateData struct {
 }
 
 func HumanDate(t time.Time) string {
+	// d := "02 Sep 2024"
 	return t.Format("02 Jan 2006 at 15:04")
+	// return d
 }
 
-var Functions = template.FuncMap{
+var functions = template.FuncMap{
 	"humanDate": HumanDate,
 }
 
 func NewTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
+	// Get a slice of all filepaths that match "./ui/html/pages/*.tmpl"
 	pages, err := filepath.Glob("./ui/html/pages/*.tmpl")
 	if err != nil {
 		return nil, err
@@ -34,16 +37,34 @@ func NewTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		// Extract filename
 		name := filepath.Base(page)
-		ts, err := template.New(name).Funcs(Functions).ParseFiles("./ui/html/base.html")
+		files := []string{
+			"./ui/html/base.tmpl",
+			"./ui/html/partials/nav.tmpl",
+			page,
+		}
+		// Parse files into a template set
+		ts, err := template.ParseFiles(files...)
 		if err != nil {
 			return nil, err
 		}
-		// files := []string{
-		// 	"./ui/html/base.tmpl",
-		// 	"./ui/html/partials/nav.tmpl",
-		// 	page,
-		// }
-		// ts, err := template.ParseFiles(files...)
+		cache[name] = ts
+	}
+	return cache, nil
+}
+
+func NTC2() (map[string]*template.Template, error) {
+	cache := map[string]*template.Template{}
+	pages, err := filepath.Glob("./ui/html/pages/*.tmpl")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, page := range pages {
+		name := filepath.Base(page)
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl")
+		if err != nil {
+			return nil, err
+		}
 		ts, err = ts.ParseGlob("./ui/html/partials/*.tmpl")
 		if err != nil {
 			return nil, err
@@ -57,7 +78,7 @@ func NewTemplateCache() (map[string]*template.Template, error) {
 	return cache, nil
 }
 
-func NTCache() (map[string]*template.Template, error) {
+func NTC() (map[string]*template.Template, error) {
 	fmt.Println("Starting ntcache... ")
 	cache := map[string]*template.Template{}
 	pages, err := filepath.Glob("./ui/html/pages/*.tmpl")
