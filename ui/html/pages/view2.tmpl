@@ -1,7 +1,7 @@
-{{define "title"}}Snippet #{{.Snippet.ID}}{{end}}
+{{ define "title" }}Home{{ end }}
 
-{{define "main"}}
-    <h2>Snippet</h2>
+{{ define "main" }}
+    <h2>Snippet </h2>
     {{ with .Snippet }}
     <div class="snippet">
         <div class="metadata">
@@ -17,4 +17,6 @@
         </div>
     </div>
     {{ end }}
-{{end}}
+    
+
+{{ end }}

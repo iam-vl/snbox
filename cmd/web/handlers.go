@@ -50,15 +50,16 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 	}
 	data := app.NewTemplateData(r)
 	data.Snippet = snippet
-	app.Render(w, http.StatusOK, "view.tmpl", data)
+	app.Render(w, http.StatusOK, "view2.tmpl", data)
 }
 
+// snippet/create
 func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request) {
 	data := app.NewTemplateData(r)
 	app.Render(w, http.StatusOK, "create.tmpl", data)
 }
 
-// snippet/create - changed the
+// Post to /snippet/create - changed the
 // func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 	// Will add post content to r.PostForm
