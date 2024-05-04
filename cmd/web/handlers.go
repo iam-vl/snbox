@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/iam-vl/snbox/internal/models"
 	"github.com/julienschmidt/httprouter"
@@ -29,6 +31,19 @@ func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 // /snippet/view?id=123
+// func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+// 	params := httprouter.ParamsFromContext(r.Context())
+// 	id, err := strconv.Atoi(params.ByName("id"))
+// 	// id, err := strconv.Atoi(r.URL.Query().Get("id"))
+// 	if err != nil || id < 1 {
+// 		// http.NotFound(w, r)
+// 		app.NotFound(w) // Title not blank and < 100 chars long. Add a message if so.(w, err)
+// 		return
+// 	}
+// 	data := app.NewTemplateData(r)
+// 	app.Render(w, http.StatusOK, "view.tmpl", data)
+// }
+
 func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
 	id, err := strconv.Atoi(params.ByName("id"))
@@ -75,6 +90,26 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 		app.ClientError(w, http.StatusBadRequest)
 		return
 	}
+	// this will hold any validation errors
+	fieldErrors := make(map[string]string)
+	// Title not blank and < 100 chars long. Add a message if so.
+	if strings.TrimSpace(title) == "" {
+		fieldErrors["title"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(title) > 100 {
+		fieldErrors["title"] = "This field cannot be longer than 100 chars"
+	}
+	if strings.TrimSpace("content") == "" {
+		fieldErrors["content"] = "The content cannot be blank"
+	}
+	if expires != 1 && expires != 7 && expires != 365 {
+		fieldErrors["expires"] = "The expires val can only be 1, 7, or 365"
+	}
+	// If any errors, dump them in plainm HTTP response and return from handler
+	if len(fieldErrors) > 0 {
+		fmt.Fprint(w, fieldErrors)
+		return
+	}
+
 	id, err := app.snippets.Insert(title, content, expires)
 	if err != nil {
 		app.ServerError(w, err)
