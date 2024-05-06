@@ -20,7 +20,7 @@ type templateData struct {
 
 func HumanDate(t time.Time) string {
 	// d := "02 Sep 2024"
-	return t.Format("02 Jan 2006 at 15:04")
+	return t.UTC().Format("02 Jan 2006 at 15:04")
 	// return d
 }
 
