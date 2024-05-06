@@ -65,7 +65,7 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 	}
 	data := app.NewTemplateData(r)
 	data.Snippet = snippet
-	app.Render(w, http.StatusOK, "view2.tmpl", data)
+	app.Render(w, http.StatusOK, "view.tmpl", data)
 }
 
 // snippet/create
