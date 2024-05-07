@@ -13,6 +13,13 @@ type templateData struct {
 ```
 
 ```go
+func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request) {
+	data := app.NewTemplateData(r)
+	data.Form = SnippetCreateForm{ // Fixes 500 error
+		Expires: 365,
+	}
+	app.Render(w, http.StatusOK, "create.tmpl", data)
+}
 func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 	// Will add post content to r.PostForm
 	_ := r.ParseForm()
