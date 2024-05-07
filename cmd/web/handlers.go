@@ -12,6 +12,15 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// Represent the form data and valid errors.
+// Need to be exported  to be read by html/template package
+type SnippetCreateForm struct {
+	Title       string
+	Content     string
+	Expires     int
+	FieldErrors map[string]string
+}
+
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 	// if r.URL.Path != "/" {
 	// 	app.NotFound(w)
@@ -71,6 +80,9 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 // snippet/create
 func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request) {
 	data := app.NewTemplateData(r)
+	data.Form = SnippetCreateForm{
+		Expires: 365,
+	}
 	app.Render(w, http.StatusOK, "create.tmpl", data)
 }
 
@@ -83,34 +95,46 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 		app.ClientError(w, http.StatusBadRequest)
 		return
 	}
-	title := r.PostForm.Get("title")
-	content := r.PostForm.Get("content")
+	// We don't need title and content anymore
 	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
 	if err != nil {
 		app.ClientError(w, http.StatusBadRequest)
 		return
 	}
+	// Create an instanced of SnippetCreateForm: values + empty map for val errors
+	form := SnippetCreateForm{
+		Title:       r.PostForm.Get("title"),
+		Content:     r.PostForm.Get("content"),
+		Expires:     expires,
+		FieldErrors: map[string]string{},
+	}
+
 	// this will hold any validation errors
-	fieldErrors := make(map[string]string)
+	// form.FieldErrors = make(map[string]string)
 	// Title not blank and < 100 chars long. Add a message if so.
-	if strings.TrimSpace(title) == "" {
-		fieldErrors["title"] = "This field cannot be blank"
-	} else if utf8.RuneCountInString(title) > 100 {
-		fieldErrors["title"] = "This field cannot be longer than 100 chars"
+	if strings.TrimSpace(form.Title) == "" {
+		form.FieldErrors["title"] = "This field cannot be blank"
+	} else if utf8.RuneCountInString(form.Title) > 100 {
+		form.FieldErrors["title"] = "This field cannot be longer than 100 chars"
 	}
 	if strings.TrimSpace("content") == "" {
-		fieldErrors["content"] = "The content cannot be blank"
+		form.FieldErrors["content"] = "The content cannot be blank"
 	}
-	if expires != 1 && expires != 7 && expires != 365 {
-		fieldErrors["expires"] = "The expires val can only be 1, 7, or 365"
+	if form.Expires != 1 && form.Expires != 7 && form.Expires != 365 {
+		form.FieldErrors["expires"] = "The expires val can only be 1, 7, or 365"
 	}
-	// If any errors, dump them in plainm HTTP response and return from handler
-	if len(fieldErrors) > 0 {
-		fmt.Fprint(w, fieldErrors)
+	// Before: If any errors, dump them in plainm HTTP response and return from handler
+	// After: If any val errors, rediplay the create template, passing the above struct as dynamic data.
+	// Using HTTP 422 Unprocessable Entity in the response to indicate valid. error.
+	if len(form.FieldErrors) > 0 {
+		data := app.NewTemplateData(r)
+		data.Form = form
+		app.Render(w, http.StatusUnprocessableEntity, "create.tmpl", data)
+		// fmt.Fprint(w, fieldErrors)
 		return
 	}
 
-	id, err := app.snippets.Insert(title, content, expires)
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.ServerError(w, err)
 		return
