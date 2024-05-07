@@ -97,3 +97,58 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
     </form>
 {{ end }}
 ```
+
+## Add validator helpers 
+
+```go
+type Validator struct {
+	FieldErrors map[string]string
+}
+type SnippetCreateForm struct {
+	Title   string
+	Content string
+	Expires int
+	validator.Validator
+	// FieldErrors map[string]string
+}
+func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
+	// Will add post content to r.PostForm
+	err := r.ParseForm()
+	if err != nil {
+		app.ClientError(w, http.StatusBadRequest)
+		return
+	}
+	// We don't need title and content anymore
+	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	if err != nil {
+		app.ClientError(w, http.StatusBadRequest)
+		return
+	}
+	// Create an instanced of SnippetCreateForm: values + empty map for val errors
+	form := SnippetCreateForm{
+		Title:   r.PostForm.Get("title"),
+		Content: r.PostForm.Get("content"),
+		Expires: expires,
+		// FieldErrors: map[string]string{},
+	}
+	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
+	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be longer than 100 chars")
+	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
+	form.CheckField(validator.PermittedInt(form.Expires, 1, 7, 365), "expires", "This field must equal 1, 7, or 365")
+	if !form.Valid8() {
+		// if len(form.FieldErrors) > 0 {
+		data := app.NewTemplateData(r)
+		data.Form = form
+		app.Render(w, http.StatusUnprocessableEntity, "create.tmpl", data)
+		return
+	}
+
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
+}
+
+```
