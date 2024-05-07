@@ -5,20 +5,20 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
-	"unicode/utf8"
 
 	"github.com/iam-vl/snbox/internal/models"
+	"github.com/iam-vl/snbox/internal/validator"
 	"github.com/julienschmidt/httprouter"
 )
 
 // Represent the form data and valid errors.
 // Need to be exported  to be read by html/template package
 type SnippetCreateForm struct {
-	Title       string
-	Content     string
-	Expires     int
-	FieldErrors map[string]string
+	Title   string
+	Content string
+	Expires int
+	validator.Validator
+	// FieldErrors map[string]string
 }
 
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
@@ -103,30 +103,35 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	}
 	// Create an instanced of SnippetCreateForm: values + empty map for val errors
 	form := SnippetCreateForm{
-		Title:       r.PostForm.Get("title"),
-		Content:     r.PostForm.Get("content"),
-		Expires:     expires,
-		FieldErrors: map[string]string{},
+		Title:   r.PostForm.Get("title"),
+		Content: r.PostForm.Get("content"),
+		Expires: expires,
+		// FieldErrors: map[string]string{},
 	}
 
 	// this will hold any validation errors
 	// form.FieldErrors = make(map[string]string)
 	// Title not blank and < 100 chars long. Add a message if so.
-	if strings.TrimSpace(form.Title) == "" {
-		form.FieldErrors["title"] = "This field cannot be blank"
-	} else if utf8.RuneCountInString(form.Title) > 100 {
-		form.FieldErrors["title"] = "This field cannot be longer than 100 chars"
-	}
-	if strings.TrimSpace("content") == "" {
-		form.FieldErrors["content"] = "The content cannot be blank"
-	}
-	if form.Expires != 1 && form.Expires != 7 && form.Expires != 365 {
-		form.FieldErrors["expires"] = "The expires val can only be 1, 7, or 365"
-	}
+	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
+	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be longer than 100 chars")
+	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
+	form.CheckField(validator.PermittedInt(form.Expires, 1, 7, 365), "expires", "This field must equal 1, 7, or 365")
+	// if strings.TrimSpace(form.Title) == "" {
+	// 	form.FieldErrors["title"] = "This field cannot be blank"
+	// } else if utf8.RuneCountInString(form.Title) > 100 {
+	// 	form.FieldErrors["title"] = "This field cannot be longer than 100 chars"
+	// }
+	// if strings.TrimSpace("content") == "" {
+	// 	form.FieldErrors["content"] = "The content cannot be blank"
+	// }
+	// if form.Expires != 1 && form.Expires != 7 && form.Expires != 365 {
+	// 	form.FieldErrors["expires"] = "The expires val can only be 1, 7, or 365"
+	// }
 	// Before: If any errors, dump them in plainm HTTP response and return from handler
 	// After: If any val errors, rediplay the create template, passing the above struct as dynamic data.
 	// Using HTTP 422 Unprocessable Entity in the response to indicate valid. error.
-	if len(form.FieldErrors) > 0 {
+	if !form.Valid8() {
+		// if len(form.FieldErrors) > 0 {
 		data := app.NewTemplateData(r)
 		data.Form = form
 		app.Render(w, http.StatusUnprocessableEntity, "create.tmpl", data)
