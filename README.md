@@ -67,3 +67,12 @@ Method | URL | Action
 `ANY`  | `/snippet/view?id=123` | `Displaying...`
 `POST` | `/snippet/create` | `Creating...`
 `ANY`  | `/static/` | Using the `http.Fileserver()` handler + `http.StripPrefix()`. 
+
+## Installing packages (to be updated)
+
+```sh
+go get github.com/go-sql-driver/mysql@v1
+go get github.com/justinas/alice@v1
+go get github.com/julienschmidt/httprouter@v1
+go get github.com/go-playground/form/v4@v4
+```

@@ -135,6 +135,20 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be longer than 100 chars")
 	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
 	form.CheckField(validator.PermittedInt(form.Expires, 1, 7, 365), "expires", "This field must equal 1, 7, or 365")
+	// if strings.TrimSpace(form.Title) == "" {
+	// 	form.FieldErrors["title"] = "This field cannot be blank"
+	// } else if utf8.RuneCountInString(form.Title) > 100 {
+	// 	form.FieldErrors["title"] = "This field cannot be longer than 100 chars"
+	// }
+	// if strings.TrimSpace("content") == "" {
+	// 	form.FieldErrors["content"] = "The content cannot be blank"
+	// }
+	// if form.Expires != 1 && form.Expires != 7 && form.Expires != 365 {
+	// 	form.FieldErrors["expires"] = "The expires val can only be 1, 7, or 365"
+	// }
+	// Before: If any errors, dump them in plainm HTTP response and return from handler
+	// After: If any val errors, rediplay the create template, passing the above struct as dynamic data.
+	// Using HTTP 422 Unprocessable Entity in the response to indicate valid. error.
 	if !form.Valid8() {
 		// if len(form.FieldErrors) > 0 {
 		data := app.NewTemplateData(r)

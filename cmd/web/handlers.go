@@ -13,11 +13,15 @@ import (
 
 // Represent the form data and valid errors.
 // Need to be exported  to be read by html/template package
+// Form parser 8.6: Include struct tags that tell the decoder
+// how to map HTML form values to the struct fields
+// Ex: we tell the decoder to store the val with name "title" in Title
+// "-" - Ignore field during decoding
 type SnippetCreateForm struct {
-	Title   string
-	Content string
-	Expires int
-	validator.Validator
+	Title               string `form:"title"`
+	Content             string `form:"content"`
+	Expires             int    `form:"expires"`
+	validator.Validator `form:"-"`
 	// FieldErrors map[string]string
 }
 
@@ -96,18 +100,24 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	// We don't need title and content anymore
-	expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	// expires, err := strconv.Atoi(r.PostForm.Get("expires"))
+	// if err != nil {
+	// 	app.ClientError(w, http.StatusBadRequest)
+	// 	return
+	// }
+	var form SnippetCreateForm
+	err = app.formDecoder.Decode(&form, r.PostForm)
 	if err != nil {
 		app.ClientError(w, http.StatusBadRequest)
 		return
 	}
 	// Create an instanced of SnippetCreateForm: values + empty map for val errors
-	form := SnippetCreateForm{
-		Title:   r.PostForm.Get("title"),
-		Content: r.PostForm.Get("content"),
-		Expires: expires,
-		// FieldErrors: map[string]string{},
-	}
+	// form := SnippetCreateForm{
+	// 	Title:   r.PostForm.Get("title"),
+	// 	Content: r.PostForm.Get("content"),
+	// 	Expires: expires,
+	// 	// FieldErrors: map[string]string{},
+	// }
 
 	// this will hold any validation errors
 	// form.FieldErrors = make(map[string]string)
@@ -116,20 +126,7 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be longer than 100 chars")
 	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
 	form.CheckField(validator.PermittedInt(form.Expires, 1, 7, 365), "expires", "This field must equal 1, 7, or 365")
-	// if strings.TrimSpace(form.Title) == "" {
-	// 	form.FieldErrors["title"] = "This field cannot be blank"
-	// } else if utf8.RuneCountInString(form.Title) > 100 {
-	// 	form.FieldErrors["title"] = "This field cannot be longer than 100 chars"
-	// }
-	// if strings.TrimSpace("content") == "" {
-	// 	form.FieldErrors["content"] = "The content cannot be blank"
-	// }
-	// if form.Expires != 1 && form.Expires != 7 && form.Expires != 365 {
-	// 	form.FieldErrors["expires"] = "The expires val can only be 1, 7, or 365"
-	// }
-	// Before: If any errors, dump them in plainm HTTP response and return from handler
-	// After: If any val errors, rediplay the create template, passing the above struct as dynamic data.
-	// Using HTTP 422 Unprocessable Entity in the response to indicate valid. error.
+
 	if !form.Valid8() {
 		// if len(form.FieldErrors) > 0 {
 		data := app.NewTemplateData(r)
