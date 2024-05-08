@@ -165,3 +165,54 @@ Handler function:
 	// 	// FieldErrors: map[string]string{},
 	// }
 ```
+
+>**Issue:**
+>The `app.formDecoder.Decode()` requires a non-nil pointer as the target decode destination. If a nil-pointer, it'll return a `form.InvalidDecoderError`. 
+>We need to manage this as a special case.  
+
+Solution: create a new `DecodePostForm()` helper:
+* Calls `r.ParseForm()` on the current request. 
+* Calls `app.formDecoder.Decode()` to unpack the form data to a TGT destination. 
+* Checks for a `form.InvalidDecoderError` error and triggers a panic if we ever see it. 
+
+Updating `helpers.go`:
+```go
+func (app *application) DecodePostForm(r *http.Request, dst any) error {
+	// Create Parse form on the request, same way as we did in our createsnippetform handler
+	err := r.ParseForm()
+	if err != nil {
+		return err
+	}
+	err = app.formDecoder.Decode(dst, r.PostForm)
+	if err != nil {
+		var invalidDecoderError *form.InvalidDecoderError
+		if errors.As(err, &invalidDecoderError) {
+			panic(err)
+		}
+		// For all other errors, return them as normal
+		return err
+	}
+	return nil
+}
+```
+
+
+Updating handlers:
+```go
+func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
+	// Will add post content to r.PostForm
+	// err := r.ParseForm()
+	// if err != nil {
+	// 	app.ClientError(w, http.StatusBadRequest)
+	// 	return
+	// }
+	var form SnippetCreateForm
+	// err = app.formDecoder.Decode(&form, r.PostForm)\
+	err := app.DecodePostForm(r, &form)
+	if err != nil {
+		app.ClientError(w, http.StatusBadRequest)
+		return
+	}
+    // .. 
+}
+```
