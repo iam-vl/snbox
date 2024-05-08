@@ -94,11 +94,11 @@ func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request
 // func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 	// Will add post content to r.PostForm
-	err := r.ParseForm()
-	if err != nil {
-		app.ClientError(w, http.StatusBadRequest)
-		return
-	}
+	// err := r.ParseForm()
+	// if err != nil {
+	// 	app.ClientError(w, http.StatusBadRequest)
+	// 	return
+	// }
 	// We don't need title and content anymore
 	// expires, err := strconv.Atoi(r.PostForm.Get("expires"))
 	// if err != nil {
@@ -106,7 +106,8 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	// 	return
 	// }
 	var form SnippetCreateForm
-	err = app.formDecoder.Decode(&form, r.PostForm)
+	// err = app.formDecoder.Decode(&form, r.PostForm)\
+	err := app.DecodePostForm(r, &form)
 	if err != nil {
 		app.ClientError(w, http.StatusBadRequest)
 		return
