@@ -63,20 +63,14 @@ Router:
 ```go
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
-
-	// Create a handler function which wraps our notFound() helper, and then
-	// assign it as the custom handler for 404 Not Found responses. You can also
-	// set a custom handler for 405 Method Not Allowed responses by setting
-	// router.MethodNotAllowed in the same way too.
 	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		app.NotFound(w)
 	})
-
 	// static file server
 	fileserver := http.FileServer(http.Dir("./ui/static/"))
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileserver))
 
-	// Middleware chain that will contain
+    // Changes below
 	dynamic := alice.New(app.sessionManager.LoadAndSave)
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.HandleHome)) // catch-all
 	router.Handler(http.MethodGet, "/snippet/view/:id", dynamic.ThenFunc(app.HandleViewSnippet))
@@ -93,3 +87,12 @@ func (app *application) routes() http.Handler {
 	return mwareChain.Then(router)
 }
 ```
+Version w/out `alice`:
+```go
+router := httprouter.New()
+// ...
+router.Handler(http.MethodGet, "/", app.sessionManager.LoadAndSave(http.HandlerFunc(app.HandleHome))) // catch-all
+router.Handler(http.MethodGet, "/snippet/view/:id", app.sessionManager.LoadAndSave(http.HandlerFunc(app.HandleViewSnippet)))
+// ...
+```
+
