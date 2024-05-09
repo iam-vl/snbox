@@ -107,5 +107,30 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
 ```
+Process it 
+```go
+func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id, _ := strconv.Atoi(params.ByName("id"))
+	snippet, _ := app.snippets.Get(id)
+	if err != nil {
+	flash := app.sessionManager.PopString(r.Context(), "flash")
+	fmt.Println(flash) // 1
+	data := app.NewTemplateData(r)
+	data.Snippet = snippet
+	data.Flash = flash // 2
+	app.Render(w, http.StatusOK, "view.tmpl", data)
+}
+```
+
+Or do like this (helpers):
+```go
+func (app *application) NewTemplateData(r *http.Request) *templateData {
+	return &templateData{
+		CurrentYear: time.Now().Year(),
+		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
+	}
+}
+```
 
 
