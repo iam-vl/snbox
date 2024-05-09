@@ -96,3 +96,16 @@ router.Handler(http.MethodGet, "/snippet/view/:id", app.sessionManager.LoadAndSa
 // ...
 ```
 
+## Working with session data 
+
+```go
+func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
+
+	// Process everything before redirect
+	// ...
+	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
+}
+```
+
+
