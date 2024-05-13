@@ -149,3 +149,26 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 	app.Render(w, http.StatusOK, "view.tmpl", data)
 }
 ```
+
+## Moving flash to helper
+
+Templates:
+```go
+func (app *application) NewTemplateData(r *http.Request) *templateData {
+	return &templateData{
+		CurrentYear: time.Now().Year(),
+		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
+	}
+}
+```
+
+```go
+func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+	// ..
+	// flash := app.sessionManager.PopString(r.Context(), "flash")
+	data := app.NewTemplateData(r)
+	data.Snippet = snippet
+	// data.Flash = flash
+	app.Render(w, http.StatusOK, "view.tmpl", data)
+}
+```
