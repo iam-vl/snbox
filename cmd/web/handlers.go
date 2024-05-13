@@ -76,8 +76,11 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
+	flash := app.sessionManager.PopString(r.Context(), "flash")
 	data := app.NewTemplateData(r)
 	data.Snippet = snippet
+
+	data.Flash = flash
 
 	app.Render(w, http.StatusOK, "view.tmpl", data)
 }
