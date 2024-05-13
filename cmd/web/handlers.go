@@ -76,8 +76,12 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
+	//  Retrieve the flash value from the context
+	flash := app.sessionManager.PopString(r.Context(), "flash")
 	data := app.NewTemplateData(r)
 	data.Snippet = snippet
+	// Pass flash to the template
+	data.Flash = flash
 	app.Render(w, http.StatusOK, "view.tmpl", data)
 }
 
@@ -93,20 +97,8 @@ func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request
 // Post to /snippet/create - changed the
 // func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
-	// Will add post content to r.PostForm
-	// err := r.ParseForm()
-	// if err != nil {
-	// 	app.ClientError(w, http.StatusBadRequest)
-	// 	return
-	// }
-	// We don't need title and content anymore
-	// expires, err := strconv.Atoi(r.PostForm.Get("expires"))
-	// if err != nil {
-	// 	app.ClientError(w, http.StatusBadRequest)
-	// 	return
-	// }
+
 	var form SnippetCreateForm
-	// err = app.formDecoder.Decode(&form, r.PostForm)\
 	err := app.DecodePostForm(r, &form)
 	if err != nil {
 		app.ClientError(w, http.StatusBadRequest)
@@ -142,8 +134,8 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 		app.ServerError(w, err)
 		return
 	}
-	// w.Write([]byte("Creating a new snippet"))
-	// http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
+	// Add values to the sesh data
+	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
 

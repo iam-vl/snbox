@@ -96,3 +96,56 @@ router.Handler(http.MethodGet, "/snippet/view/:id", app.sessionManager.LoadAndSa
 // ...
 ```
 
+## Flash message 
+
+Handler 1:
+```go
+func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
+
+	var form SnippetCreateForm
+	// ...
+	id, _ := app.snippets.Insert(form.Title, form.Content, form.Expires)
+	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
+}
+```
+Template data (templates.go):
+```go
+type templateData struct {
+	CurrentYear int
+	Snippet     *models.Snippet
+	Snippets    []*models.Snippet
+	Form        any
+	Flash       string // Flash message
+}
+```
+
+Add to the base template:
+```html
+<main>
+	<!-- Display the flash message if any -->
+	{{with .Flash}}
+		<div class="flash">{{.}}</div>
+	{{end}}
+	{{ template "main" . }}
+</main>
+```
+Add to handler 2:
+```go
+func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+	params := httprouter.ParamsFromContext(r.Context())
+	id, _ := strconv.Atoi(params.ByName("id"))
+	// id, err := strconv.Atoi(r.URL.Query().Get("id"))
+
+	// Use SnippetModel's Get
+	snippet, _ := app.snippets.Get(id)
+
+	//  Retrieve the flash value from the context
+	flash := app.sessionManager.PopString(r.Context(), "flash")
+	data := app.NewTemplateData(r)
+	data.Snippet = snippet
+	// Pass flash to the template
+	data.Flash = flash
+	app.Render(w, http.StatusOK, "view.tmpl", data)
+}
+```
