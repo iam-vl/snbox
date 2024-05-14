@@ -116,3 +116,24 @@ func main() {
 	// err := http.ListenAndServe(*port, mux) // legacy
 	errorLog.Fatal(err)
 }
+
+To config min and max TLS versions:
+```go 
+tlsConfig := &tls.Config {
+    MinVersion: tks.VersionTLS12,
+    MaxVersion: tls.VersionTLS13, // so far the latest one. 
+}
+```
+Can restrict cipher suites. For example, only support cipher suites that use ECDHE (forward security) and not support weak suites:
+```go
+tlsConfig := &tls.Config {
+    CipherSuites: []uint16{
+        tls.TLS_ECDHE_ECDSA_WITH_AES256_GCM_SHA384,
+        tls.TLS_ECDHE_RSA_WITH_AES256_GCM_SHA384,
+        tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+        tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+        tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+        tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+    }
+}
+```
