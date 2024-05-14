@@ -59,6 +59,8 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = mysqlstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
+	// Serve over https
+	sessionManager.Cookie.Secure = true
 
 	app := &application{
 		errorLog:       errorLog,
@@ -78,9 +80,10 @@ func main() {
 
 	// Need to dereference a pointer
 	infoLog.Printf("Starting server on port: %s", *port)
-	// below mux ~ handler // mux is a special kind of handler
-	err = srv.ListenAndServe()
-	// err := http.ListenAndServe(*port, mux)
+	// Use TLS
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	// err = srv.ListenAndServe()
+	// err := http.ListenAndServe(*port, mux) // legacy
 	errorLog.Fatal(err)
 }
 
