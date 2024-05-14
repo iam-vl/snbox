@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -70,12 +71,18 @@ func main() {
 		formDecoder:    formDecoder,
 		sessionManager: sessionManager,
 	}
+	// create somewhere to hold custom TLS settings
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.CurveP256, tls.X25519},
+	}
 
 	// Custom http server
 	srv := &http.Server{
 		Addr:     *port,
 		ErrorLog: errorLog,
 		Handler:  app.routes(),
+		// Add custom TLS config
+		TLSConfig: tlsConfig,
 	}
 
 	// Need to dereference a pointer

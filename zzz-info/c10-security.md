@@ -75,3 +75,44 @@ $ ls -la tls
 -rw------- 1 dell dell 1704 May 14 22:31 key.pem
 ```
 
+## Optimize HTTPS 
+
+Restrict some elliptic curves. to do so, create a `tls.Config` struct with custom TLS settings and add it to `http.Server`. Main: 
+```go
+func main() {
+
+	// Set up everything
+    // ... 
+	// Serve over https
+	sessionManager.Cookie.Secure = true
+
+	app := &application{
+		errorLog:       errorLog,
+		infoLog:        infoLog,
+		snippets:       &models.SnippetModel{DB: db},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
+	}
+	// create somewhere to hold custom TLS settings 
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.CurveP256, tls.X25519},
+	}
+
+	// Custom http server
+	srv := &http.Server{
+		Addr:     *port,
+		ErrorLog: errorLog,
+		Handler:  app.routes(),
+		// Add custom TLS config
+        TLSConfig: tlsConfig,
+	}
+
+	// Need to dereference a pointer
+	infoLog.Printf("Starting server on port: %s", *port)
+	// Use TLS
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	// err = srv.ListenAndServe()
+	// err := http.ListenAndServe(*port, mux) // legacy
+	errorLog.Fatal(err)
+}
