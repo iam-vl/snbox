@@ -62,3 +62,4 @@ func main() {
 }
 ```
 Firefox: **Accept risks and continue**. 
+See sec data: Ctrl + I
