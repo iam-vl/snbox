@@ -120,7 +120,7 @@ func main() {
 To config min and max TLS versions:
 ```go 
 tlsConfig := &tls.Config {
-    MinVersion: tks.VersionTLS12,
+    MinVersion: tls.VersionTLS12,
     MaxVersion: tls.VersionTLS13, // so far the latest one. 
 }
 ```
