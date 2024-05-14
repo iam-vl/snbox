@@ -16,7 +16,7 @@ type templateData struct {
 	Snippet     *models.Snippet
 	Snippets    []*models.Snippet
 	Form        any
-	Flash       string // add a flash field to the template
+	Flash       string // Flash message
 }
 
 func HumanDate(t time.Time) string {

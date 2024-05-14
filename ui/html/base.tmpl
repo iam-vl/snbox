@@ -17,9 +17,10 @@
         </header>
         {{ template "nav" . }}
         <main>
-            {{ with .Flash }}
+            <!-- Display the flash message if any -->
+            {{with .Flash}}
                 <div class="flash">{{.}}</div>
-            {{ end }}
+            {{end}}
             {{ template "main" . }}
         </main>
 

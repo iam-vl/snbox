@@ -76,12 +76,12 @@ func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
-	flash := app.sessionManager.PopString(r.Context(), "flash")
+	//  Retrieve the flash value from the context
+	// flash := app.sessionManager.PopString(r.Context(), "flash")
 	data := app.NewTemplateData(r)
 	data.Snippet = snippet
-
-	data.Flash = flash
-
+	// Pass flash to the template
+	// data.Flash = flash
 	app.Render(w, http.StatusOK, "view.tmpl", data)
 }
 
@@ -99,7 +99,6 @@ func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request
 func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 
 	var form SnippetCreateForm
-	// err = app.formDecoder.Decode(&form, r.PostForm)\
 	err := app.DecodePostForm(r, &form)
 	if err != nil {
 		app.ClientError(w, http.StatusBadRequest)
@@ -135,6 +134,7 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 		app.ServerError(w, err)
 		return
 	}
+	// Add values to the sesh data
 	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }

@@ -34,7 +34,7 @@ func (app *application) routes() http.Handler {
 	// router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.HandleViewSnippet)
 	// router.HandlerFunc(http.MethodGet, "/snippet/create", app.HandleSnippetForm)
 	// router.HandlerFunc(http.MethodPost, "/snippet/create", app.HandleCreateSnippet)
-	router.HandlerFunc(http.MethodPost, "/head", HandleCustomizeHeaders)
+	// router.HandlerFunc(http.MethodPost, "/head", HandleCustomizeHeaders)
 
 	// mux := http.NewServeMux()
 	// // os_port := os.Getenv("SBOX_PORT")
