@@ -63,3 +63,15 @@ func main() {
 ```
 Firefox: **Accept risks and continue**. 
 See sec data: Ctrl + I
+Http/2 (if supported by client) => Will load faster
+
+Gencert tool grants: 
+* Read permission for all users for cert.pem
+* Read permission only to the owner of key.pem 
+
+```sh
+$ ls -la tls
+-rw-rw-r-- 1 dell dell 1090 May 14 22:31 cert.pem
+-rw------- 1 dell dell 1704 May 14 22:31 key.pem
+```
+
