@@ -139,6 +139,22 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
 }
 
+func (app *application) HandleSignupForm(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Display an HTML signup form")
+}
+func (app *application) HandleSignupPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Create a user")
+}
+func (app *application) HandleLoginForm(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Display an HTML login form")
+}
+func (app *application) HandleLoginPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Auth a user")
+}
+func (app *application) HandleLogoutUser(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Log out a user")
+}
+
 // snippet/create
 func HandleCustomizeHeaders(w http.ResponseWriter, r *http.Request) {
 

@@ -65,7 +65,13 @@ Method | URL | Action
 ---|---|---
 `ANY`  | `/` | `Hello`
 `ANY`  | `/snippet/view?id=123` | `Displaying...`
-`POST` | `/snippet/create` | `Creating...`
+`GET`  | `/snippet/create` | Form 
+`POST` | `/snippet/create` | Submit form 
+`GET`  | `/user/signup` | Signup form (C 11)
+`POST` | `/user/signup` | Create account (C 11)
+`GET`  | `/user/login` | Login form (C 11)
+`POST` | `/user/login` | Log in user (C 11)
+`POST` | `/user/logout` | Log out user (C 11)
 `ANY`  | `/static/` | Using the `http.Fileserver()` handler + `http.StripPrefix()`. 
 
 ## Installing packages (to be updated)
