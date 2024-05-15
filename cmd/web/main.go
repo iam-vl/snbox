@@ -78,11 +78,16 @@ func main() {
 
 	// Custom http server
 	srv := &http.Server{
-		Addr:     *port,
+		Addr: *port,
+		// MaxHeaderBytes: 524288, // Limit header size. If above: 431 Request Header Fields Too Large
 		ErrorLog: errorLog,
 		Handler:  app.routes(),
 		// Add custom TLS config
 		TLSConfig: tlsConfig,
+		// Add Idle, Read, and Write timeouts
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
 	}
 
 	// Need to dereference a pointer

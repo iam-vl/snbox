@@ -141,3 +141,29 @@ tlsConfig := &tls.Config {
 >**Note**
 >If a TLS 1.3 connection is negotiated, any CipherSuites field in your tls.Config will be ignored. The reason for this is that all the cipher suites that Go supports for TLS 1.3 connections are considered to be safe, so there isn’t much point in providing a mechanism to configure them.
 
+## Connection timeouts 
+
+Improve server resiliency by adding timeout settings:  
+```go
+	srv := &http.Server{
+		Addr: *port,
+		// MaxHeaderBytes: 524288, // Limit header size. If above: 431 Request Header Fields Too Large (=4996 bytes)
+		ErrorLog: errorLog,
+		Handler:  app.routes(),
+		// Add custom TLS config
+		TLSConfig: tlsConfig,
+		// Add Idle, Read, and Write timeouts
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+```
+All three are server-wide settings which act on underlying connection and apply to all requests. 
+Go enables keep-alives (persistent conn). Automatically closed after a couple minutes. You cannot increase,  but can decrease the wait time. 
+
+>**Note**
+>If you set ReadTimeout, but don't set IdleTimeout, Idle will default to ReadTimeout. 
+>Prevent the data that handler reaturns from taking too long to write with WriteTimeout. 
+
+>**Note**
+>
