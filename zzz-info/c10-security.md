@@ -137,3 +137,7 @@ tlsConfig := &tls.Config {
     }
 }
 ```
+
+>**Note**
+>If a TLS 1.3 connection is negotiated, any CipherSuites field in your tls.Config will be ignored. The reason for this is that all the cipher suites that Go supports for TLS 1.3 connections are considered to be safe, so there isn’t much point in providing a mechanism to configure them.
+
