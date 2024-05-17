@@ -24,6 +24,12 @@ type SnippetCreateForm struct {
 	validator.Validator `form:"-"`
 	// FieldErrors map[string]string
 }
+type UserSignupForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
 
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 	// if r.URL.Path != "/" {
@@ -140,7 +146,9 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *application) HandleSignupForm(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display an HTML signup form")
+	data := app.NewTemplateData(r)
+	data.Form = UserSignupForm{}
+	app.Render(w, http.StatusOK, "signup.tmpl", data)
 }
 func (app *application) HandleSignupPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Create a user")

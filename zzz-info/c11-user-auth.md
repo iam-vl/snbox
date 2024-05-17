@@ -51,17 +51,66 @@ type User struct {
 	HanshedPwd []byte
 	Created    time.Time
 }
-type UserModel struct {
-	DB *sql.DB
+type UserModel struct { DB *sql.DB }
+func (m *UserModel) Insert(name, email, pwd string) error { return nil }
+func (m *UserModel) Auth(email, pwd string) (int, error) { return 0, nil }
+func (m *UserModel) Exists(id int) (bool, error) { return false, nil } 
+```
+Add new users field to the app: 
+```go 
+type application struct {
+	errorLog       *log.Logger
+	infoLog        *log.Logger
+	snippets       *models.SnippetModel
+	users          *models.UserModel
+	templateCache  map[string]*template.Template
+	formDecoder    *form.Decoder
+	sessionManager *scs.SessionManager
 }
-func (m *UserModel) Insert(name, email, pwd string) error {
-	return nil
+func main() {
+	app := &application{
+		errorLog:       errorLog,
+		infoLog:        infoLog,
+		snippets:       &models.SnippetModel{DB: db},
+		users:          &models.UserModel{DB: db},
+		templateCache:  templateCache,
+		formDecoder:    formDecoder,
+		sessionManager: sessionManager,
+	}
+	// create somewhere to hold custom TLS settings
+	tlsConfig := &tls.Config{ 
+		CurvePreferences: []tls.CurveID{tls.CurveP256, tls.X25519},
+	}
+
+	// Custom http server
+	srv := &http.Server{
+		// 
+	}
+
+	// Need to dereference a pointer
+	infoLog.Printf("Starting server on port: %s", *port)
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	errorLog.Fatal(err)
 }
-func (m *UserModel) Auth(email, pwd string) (int, error) {
-	return 0, nil
+```
+
+## User signup and pwd encryption 
+
+Create the signup form (ui/html/pages/signup.tmpl)
+Include user form struct (handlers):
+
+```go
+type UserSignupForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
 }
-func (m *UserModel) Exists(id int) (bool, error) {
-	return false, nil
+func (app *application) HandleSignupForm(w http.ResponseWriter, r *http.Request) {
+	data := app.NewTemplateData(r)
+	data.Form = UserSignupForm{}
+	app.Render(w, http.StatusOK, "signup.tmpl", data)
+}
 ```
 
 
