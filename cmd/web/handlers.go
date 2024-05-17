@@ -151,7 +151,27 @@ func (app *application) HandleSignupForm(w http.ResponseWriter, r *http.Request)
 	app.Render(w, http.StatusOK, "signup.tmpl", data)
 }
 func (app *application) HandleSignupPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Create a user")
+	// fmt.Fprintln(w, "Create a user")
+	var form UserSignupForm
+	err := app.DecodePostForm(r, &form)
+	if err != nil {
+		app.ClientError(w, http.StatusBadRequest)
+		return
+	}
+	form.CheckField(validator.NotBlank(form.Name), "name", "This field cannot be blank")
+	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRegex), "email", "This field must be a valid email")
+	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(validator.MinChars(form.Password, 8), "password", "This field must be at least 8 chars long")
+	if !form.Valid8() {
+		data := app.NewTemplateData(r)
+		data.Form = form
+		fmt.Printf("Form: %+v\n", form)
+		// 422 Unprocessable Content
+		app.Render(w, http.StatusUnprocessableEntity, "signup.tmpl", data)
+		return
+	}
+
 }
 func (app *application) HandleLoginForm(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Display an HTML login form")

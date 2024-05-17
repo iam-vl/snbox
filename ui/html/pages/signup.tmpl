@@ -4,22 +4,22 @@
 <form action="/user/signup" method="POST" novalidate>
     <div>
         <label>Name:</label>
-        {{with .Form.FieldErrors.name}}
-            <label class="error">{{.}}</label>
+        {{with .Form.FieldErrors.name}}<br>
+            <label class="error">{{.}}</label><br>
         {{end}}
-        <input type="text" name="" value="{{.Form.Name}}">
+        <input type="text" name="name" value="{{.Form.Name}}">
     </div>
     <div>
         <label>Email:</label>
-        {{with .Form.FieldErrors.name}}
-            <label class="error">{{.}}</label>
+        {{with .Form.FieldErrors.email}}<br>
+            <label class="error">{{.}}</label><br>
         {{end}}
-        <input type="email" name="" value="{{.Form.Email}}">
+        <input type="email" name="email" value="{{.Form.Email}}">
     </div>
     <div>
         <label>Password:</label>
-        {{with .Form.FieldErrors.name}}
-            <label class="error">{{.}}</label>
+        {{with .Form.FieldErrors.password}}<br>
+            <label class="error">{{.}}</label><br>
         {{end}}
         <input type="password" name="password">
     </div>

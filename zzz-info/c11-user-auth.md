@@ -112,5 +112,22 @@ func (app *application) HandleSignupForm(w http.ResponseWriter, r *http.Request)
 	app.Render(w, http.StatusOK, "signup.tmpl", data)
 }
 ```
+## Validate input
+
+```go
+var EmailRegex = regexp.MustCompile("`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`")
+
+func MinChars(val string, n int) bool {
+	// True if a val contains at least n chars
+	return utf8.RuneCountInString(val) >= n
+}
+func Matches(val string, rx *regexp.Regexp) bool {
+	// True if the val matches the regex
+	return rx.MatchString(val)
+}
+```
+Process the form and run the valid8n tests (handlers):
+```go
+```
 
 

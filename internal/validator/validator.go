@@ -1,9 +1,21 @@
 package validator
 
 import (
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
+
+var EmailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+
+func MinChars(val string, n int) bool {
+	// True if a val contains at least n chars
+	return utf8.RuneCountInString(val) >= n
+}
+func Matches(val string, rx *regexp.Regexp) bool {
+	// True if the val matches the regex
+	return rx.MatchString(val)
+}
 
 type Validator struct {
 	FieldErrors map[string]string
