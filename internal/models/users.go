@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -39,7 +38,9 @@ func (m *UserModel) Insert(name, email, password string) error {
 		// Using errors.As to check wether the error has the time *mysql.MySQLError. If so, assigning the error
 		if errors.As(err, &mySqlError) {
 			// If the error relates to our constraint, returning specific error
-			if mySqlError.Number == 1062 && strings.Contains(mySqlError.Message, "users_uc_email") {
+			if mySqlError.Number == 1062 {
+				// if mySqlError.Number == 1062 && strings.Contains(mySqlError.Message, "users_uc_email") {
+				fmt.Println("Yes, ErrDuplicateEmail")
 				return ErrDuplicateEmail
 			}
 		}
