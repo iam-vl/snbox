@@ -171,6 +171,29 @@ func (app *application) HandleSignupPost(w http.ResponseWriter, r *http.Request)
 		app.Render(w, http.StatusUnprocessableEntity, "signup.tmpl", data)
 		return
 	}
+	// Try creating user rec in db
+	fmt.Printf("Creds: %s, %s, %s\n", form.Name, form.Email, form.Password)
+	fmt.Println("Insert user model 11")
+
+	err = app.users.Insert(form.Name, form.Email, form.Password)
+	fmt.Println("Insert user model 12")
+	if err != nil {
+		if errors.Is(err, models.ErrDuplicateEmail) {
+			fmt.Println("Insert user model 13")
+
+			form.AddFieldError("email", "Email address already in use")
+			data := app.NewTemplateData(r)
+			data.Form = form
+			app.Render(w, http.StatusUnprocessableEntity, "signup.tmpl", data)
+		} else {
+			fmt.Println("Insert user model 14")
+			app.ServerError(w, err)
+		}
+		return
+	}
+	// Otherwise, confirm the operation, and redirect to the login page
+	app.sessionManager.Put(r.Context(), "flash", "Your signup has been successul. Please log in.")
+	http.Redirect(w, r, "/user/login", http.StatusSeeOther) // HTTP 303
 
 }
 func (app *application) HandleLoginForm(w http.ResponseWriter, r *http.Request) {

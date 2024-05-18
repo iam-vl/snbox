@@ -148,3 +148,26 @@ func GenerateHash(password string) {
 	}
 }
 ```
+User model: 
+```go
+func (m *UserModel) Insert(name, email, password string) error {
+	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return err
+	}
+	stmt := `INSERT INTO users (name, email, hashed_password, created) VALUES (?, ?, ?, UTC_TIMESTAMP())`
+	_, err = m.DB.Exec(stmt, name, email, string(hashedPwd))
+	if err != nil {
+		var mySqlError *mysql.MySQLError
+		// Using errors.As to check wether the error has the time *mysql.MySQLError. If so, assigning the error
+		if errors.As(err, &mySqlError) {
+			// If the error relates to our constraint, returning specific error
+			if mySqlError.Number == 1062 && strings.Contains(mySqlError.Message, "users_uc_email") {
+				return ErrDuplicateEmail
+			}
+		}
+		return err
+	}
+	return nil
+}
+```
