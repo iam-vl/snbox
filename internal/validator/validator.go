@@ -18,11 +18,18 @@ func Matches(val string, rx *regexp.Regexp) bool {
 }
 
 type Validator struct {
-	FieldErrors map[string]string
+	FieldErrors    map[string]string
+	NonFieldErrors []string
 }
 
 func (v *Validator) Valid8() bool {
-	return len(v.FieldErrors) == 0
+	// Include NonFieldErrors in the validation
+	return len(v.FieldErrors) == 0 && len(v.NonFieldErrors) == 0
+}
+
+// Add a NonFieldError to the NonFieldError slice
+func (v *Validator) AddNonFieldError(message string) {
+	v.NonFieldErrors = append(v.NonFieldErrors, message)
 }
 
 // Add an err message to FE map (if no entry for this key)

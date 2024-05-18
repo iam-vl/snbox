@@ -30,6 +30,11 @@ type UserSignupForm struct {
 	Password            string `form:"password"`
 	validator.Validator `form:"-"`
 }
+type UserLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
 
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
 	// if r.URL.Path != "/" {
@@ -194,10 +199,13 @@ func (app *application) HandleSignupPost(w http.ResponseWriter, r *http.Request)
 	// Otherwise, confirm the operation, and redirect to the login page
 	app.sessionManager.Put(r.Context(), "flash", "Your signup has been successul. Please log in.")
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther) // HTTP 303
-
 }
+
 func (app *application) HandleLoginForm(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Display an HTML login form")
+	data := app.NewTemplateData(r)
+	data.Form = UserLoginForm{}
+	app.Render(w, http.StatusOK, "login.tmpl", data)
+	// fmt.Fprintln(w, "Display an HTML login form")
 }
 func (app *application) HandleLoginPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Auth a user")

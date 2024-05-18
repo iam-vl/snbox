@@ -171,3 +171,38 @@ func (m *UserModel) Insert(name, email, password string) error {
 	return nil
 }
 ```
+
+## User login 
+
+Update validator to support valid errors that are not associated with one specific field. Later,  can show something like "your email or pwd is incorrect". 
+Add NonFieldError to validator.go
+```go
+type Validator struct {
+	FieldErrors    map[string]string
+	NonFieldErrors []string
+}
+
+func (v *Validator) Valid8() bool {
+	// Include NonFieldErrors in the validation
+	return len(v.FieldErrors) == 0 && len(v.NonFieldErrors) == 0
+}
+
+// Add a NonFieldError to the NonFieldError slice
+func (v *Validator) AddNonFieldError(message string) {
+	v.NonFieldErrors = append(v.NonFieldErrors, message)
+}
+```
+Add login template (login.tmpl). 
+In handlers, create `UserLoginForm` struct and update `HandleLoginForm()`:
+```go
+type UserLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+func (app *application) HandleLoginForm(w http.ResponseWriter, r *http.Request) {
+	data := app.NewTemplateData(r)
+	data.Form = UserLoginForm{}
+	app.Render(w, http.StatusOK, "login.tmpl", data)
+}
+```
