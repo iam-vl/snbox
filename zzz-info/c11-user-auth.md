@@ -130,4 +130,21 @@ Process the form and run the valid8n tests (handlers):
 ```go
 ```
 
-
+Using bcrypt:
+```
+go get golang.org/x/crypto/bcrypt@latest
+```
+```go
+func GenerateHash(password string) {
+	// Include password and cost (4-31). 12 is reasonable minimum.
+	// Returns a 60-char string
+	hash, _ := bcrypt.GenerateFromPassword([]byte(password), 12)
+	fmt.Printf("Hash value: %+v\t\nHash type: %T\n", hash, hash)
+	// Example output: $2a$12$NuTjWXm3KKntReFwyBVHyuf/to.HEwTy.eS206TNfkGfr6HzGJSWG
+	// Check the value. 
+	err := bcrypt.CompareHashAndPassword(hash, []byte(password))
+	if err == nil {
+		fmt.Println("Passwords match")
+	}
+}
+```
