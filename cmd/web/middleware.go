@@ -17,6 +17,20 @@ func SecureHeaders(next http.Handler) http.Handler {
 	})
 }
 
+func (app *application) RequireAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !app.IsAuthenticated(r) {
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+			return
+		}
+		// Otherwise, set "Cache-Control: no store" header
+		// so that the pages that require auth are not stored in the user browser cache
+		w.Header().Add("Cache-Control", "no-store")
+		// Call the next handler in chain
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (app *application) LogRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		app.infoLog.Printf("%s - %s %s %s\n", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())

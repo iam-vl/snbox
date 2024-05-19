@@ -361,5 +361,77 @@ Add to the templates (nav):
 </nav>
 {{ end }}
 ```
+## Restrict access to the snippet form 
+
+Create middleware:
+```go
+func (app *application) RequireAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !app.IsAuthenticated(r) {
+			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+			return
+		}
+		// Otherwise, set "Cache-Control: no store" header
+		// so that the pages that require auth are not stored in the user browser cache
+		w.Header().Add("Cache-Control", "no-store")
+		next.ServeHTTP(w, r)
+	})
+}
+```
+Add the new mw to routes. Rearrange: 
+* unprotected routes use existing dynamic chain
+* protected routes: existing chain + new middleware 
+```go
+func (app *application) routes() http.Handler {
+	router := httprouter.New()
+
+	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.NotFound(w)
+	})
+
+	// static file server
+	fileserver := http.FileServer(http.Dir("./ui/static/"))
+	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileserver))
+
+	// Middleware chain that will contain
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
+	// Protected middleware chain:
+	protectedChain := dynamic.Append(app.RequireAuth)
+
+	// Unprotected routes
+	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.HandleHome)) // catch-all
+	router.Handler(http.MethodGet, "/snippet/view/:id", dynamic.ThenFunc(app.HandleViewSnippet))
+	router.Handler(http.MethodGet, "/user/signup", dynamic.ThenFunc(app.HandleSignupForm))
+	router.Handler(http.MethodPost, "/user/signup", dynamic.ThenFunc(app.HandleSignupPost))
+	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.HandleLoginForm))
+	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.HandleLoginPost))
+	// Protected routes 
+	router.Handler(http.MethodGet, "/snippet/create", protectedChain.ThenFunc(app.HandleSnippetForm))
+	router.Handler(http.MethodPost, "/snippet/create", protectedChain.ThenFunc(app.HandleCreateSnippet))	
+	router.Handler(http.MethodPost, "/user/logout", protectedChain.ThenFunc(app.HandleLogoutUser))
+
+	mwareChain := alice.New(app.RecoverPanic, app.LogRequest, SecureHeaders)
+	return mwareChain.Then(router)
+}
+```
+Example w/out alice:
+```go
+router.Handler(http.MethodPost,"/snippet/create",app.sessionManager.LoadAndSave(app.requireAuthentication(http.HandlerFunc(app.snippetCreate)))
+```
+
+Can check thru `curl`:
+```sh
+$ curl -ki -X POST https://localhost:1111/snippet/create
+HTTP/2 303 
+content-security-policy: default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com
+location: /user/login
+referrer-policy: origin-when-cross-origin
+vary: Cookie
+x-content-type: nosniff
+x-frame-options: deny
+x-xss-protection: 0
+content-length: 0
+date: Sun, 19 May 2024 10:47:21 GMT
+```
 
 

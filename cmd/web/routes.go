@@ -25,16 +25,20 @@ func (app *application) routes() http.Handler {
 
 	// Middleware chain that will contain
 	dynamic := alice.New(app.sessionManager.LoadAndSave)
+	// Protected middleware chain:
+	protectedChain := dynamic.Append(app.RequireAuth)
+
+	// Unprotected routes
 	router.Handler(http.MethodGet, "/", dynamic.ThenFunc(app.HandleHome)) // catch-all
 	router.Handler(http.MethodGet, "/snippet/view/:id", dynamic.ThenFunc(app.HandleViewSnippet))
-	router.Handler(http.MethodGet, "/snippet/create", dynamic.ThenFunc(app.HandleSnippetForm))
-	router.Handler(http.MethodPost, "/snippet/create", dynamic.ThenFunc(app.HandleCreateSnippet))
-	// New / ch 11 handlers
 	router.Handler(http.MethodGet, "/user/signup", dynamic.ThenFunc(app.HandleSignupForm))
 	router.Handler(http.MethodPost, "/user/signup", dynamic.ThenFunc(app.HandleSignupPost))
 	router.Handler(http.MethodGet, "/user/login", dynamic.ThenFunc(app.HandleLoginForm))
 	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.HandleLoginPost))
-	router.Handler(http.MethodPost, "/user/logout", dynamic.ThenFunc(app.HandleLogoutUser))
+	// Protected routes
+	router.Handler(http.MethodGet, "/snippet/create", protectedChain.ThenFunc(app.HandleSnippetForm))
+	router.Handler(http.MethodPost, "/snippet/create", protectedChain.ThenFunc(app.HandleCreateSnippet))
+	router.Handler(http.MethodPost, "/user/logout", protectedChain.ThenFunc(app.HandleLogoutUser))
 
 	// router.HandlerFunc(http.MethodGet, "/", app.HandleHome) // catch-all
 	// router.HandlerFunc(http.MethodGet, "/snippet/view/:id", app.HandleViewSnippet)
