@@ -225,8 +225,6 @@ func (app *application) HandleLogoutUser(w http.ResponseWriter, r *http.Request)
 	app.sessionManager.Remove(r.Context(), "authenticatedUserId")
 	app.sessionManager.Put(r.Context(), "flash", "You've been logged out successfully")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-
-	// fmt.Fprintln(w, "Log out a user")
 }
 
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {

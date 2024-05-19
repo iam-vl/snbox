@@ -11,10 +11,16 @@ import (
 	"github.com/go-playground/form/v4"
 )
 
+func (app *application) IsAuthenticated(r *http.Request) bool {
+	return app.sessionManager.Exists(r.Context(), "authenticatedUserId")
+}
+
 func (app *application) NewTemplateData(r *http.Request) *templateData {
 	return &templateData{
 		CurrentYear: time.Now().Year(),
 		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
+		// Add the auth status to the templ data
+		IsAuth: app.IsAuthenticated(r),
 	}
 }
 

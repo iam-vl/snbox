@@ -294,3 +294,72 @@ func (app *application) HandleLogoutUser(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 ```
+
+## User authorization 
+
+Goals:  
+1. Only authenticated (i.e. logged in) users can create a new snippet; and
+2. The contents of the navigation bar changes depending on whether a user is authenticated
+(logged in) or not. Specifically:
+  * Authenticated users should see links to ‘Home’, ‘Create snippet’ and ‘Logout’.
+  * Unauthenticated users should see links to ‘Home’, ‘Signup’ and ‘Login’.
+Solution:   
+1. Check if the reqt comes from an authd user: create helper: `app.isAuthenticated(r *http.Request) bool {}`. 
+2. Pass the info to the HTML templates:  
+  2.1. Add `isAuth` to template data:
+  2.2. Update `NewTemplateData()` helper so the if is automcatically added to templateData when we render a template. 
+
+Helper:  
+```go
+func (app *application) IsAuthenticated(r *http.Request) bool {
+	return app.sessionManager.Exists(r.Context(), "authenticatedUserId")
+}
+```
+Tempaltes:
+```go
+type templateData struct {
+	CurrentYear int
+	Snippet     *models.Snippet
+	Snippets    []*models.Snippet
+	Form        any
+	Flash       string // Flash message
+	isAuth      bool   // Add to templ data
+}
+```
+Helpers:
+```go
+func (app *application) NewTemplateData(r *http.Request) *templateData {
+	return &templateData{
+		CurrentYear: time.Now().Year(),
+		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
+		// Add the auth status to the templ data
+		IsAuth: app.IsAuthenticated(r),
+	}
+}
+```  
+Add to the templates (nav):
+```go
+{{ define "nav" }}
+<nav>
+    <div>
+        <a href="/">Home</a>
+        {{if .IsAuth}}
+            <a href="/snippet/create">Create snippet</a>
+        {{end}}
+        
+    </div>
+    <div>
+        {{if .IsAuth}}
+            <form action="/user/logout" method="POST">
+                <button>Logout</button>
+            </form>
+        {{else}}
+            <a href="/user/signup">Signup</a>
+            <a href="/user/login">Log in</a>
+        {{end}}
+    </div>    
+</nav>
+{{ end }}
+```
+
+
