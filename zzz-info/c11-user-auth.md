@@ -206,3 +206,75 @@ func (app *application) HandleLoginForm(w http.ResponseWriter, r *http.Request) 
 	app.Render(w, http.StatusOK, "login.tmpl", data)
 }
 ```
+## Verifying user details 
+
+UserModel.Auth():
+```go
+func (m *UserModel) Auth(email, password string) (int, error) {
+	var id int
+	var pwdHash []byte
+	stmt := `SELECT id, hashed_pwd FROM users WHERE email = ?`
+	// check for creds
+	err := m.DB.QueryRow(stmt, email).Scan(&id, &pwdHash)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, ErrInvalidCreds // Not found
+		} else {
+			return 0, err
+		}
+	}
+	// if found
+	err = bcrypt.CompareHashAndPassword(pwdHash, []byte(password))
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return 0, ErrInvalidCreds // incorrect pwd
+		} else {
+			return 0, err
+		}
+	}
+	return id, nil
+}
+```
+Handler:  
+```go
+func (app *application) HandleLoginPost(w http.ResponseWriter, r *http.Request) {
+	var form UserLoginForm
+	err := app.DecodePostForm(r, &form)
+	if err != nil {
+		app.ClientError(w, http.StatusBadRequest)
+		return
+	}
+	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
+	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRegex), "email", "This field must be a valid address")
+	if !form.Valid8() {
+		data := app.NewTemplateData(r)
+		data.Form = form
+		app.Render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
+	}
+	// check if the creds are valid
+	id, err := app.users.Auth(form.Email, form.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCreds) {
+			form.AddNonFieldError("Email or password is incorrect")
+			data := app.NewTemplateData(r)
+			data.Form = form
+			app.Render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
+		} else {
+			app.ServerError(w, err)
+		}
+		return
+	}
+	// Generate a new session ID when the auth status and priovilege level change
+	// For example, if user login / logout.
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+	// Add the ID of current user to session, so they are now logged in.
+	app.sessionManager.Put(r.Context(), "authenticatedUseId", id)
+	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther) // 403
+}
+```
+

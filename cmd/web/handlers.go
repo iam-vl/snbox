@@ -24,49 +24,6 @@ type SnippetCreateForm struct {
 	validator.Validator `form:"-"`
 	// FieldErrors map[string]string
 }
-type UserSignupForm struct {
-	Name                string `form:"name"`
-	Email               string `form:"email"`
-	Password            string `form:"password"`
-	validator.Validator `form:"-"`
-}
-type UserLoginForm struct {
-	Email               string `form:"email"`
-	Password            string `form:"password"`
-	validator.Validator `form:"-"`
-}
-
-func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
-	// if r.URL.Path != "/" {
-	// 	app.NotFound(w)
-	// 	return
-	// }
-	// panic("oops! something went wrong") // deliverate panic
-	snippets, err := app.snippets.Latest10()
-	if err != nil {
-		app.ServerError(w, err)
-		return
-	}
-	data := app.NewTemplateData(r)
-	data.Snippets = snippets
-	// Use render helper
-	fmt.Printf("Year: %+v\n", data.CurrentYear)
-	app.Render(w, http.StatusOK, "home.tmpl", data)
-}
-
-// /snippet/view?id=123
-// func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
-// 	params := httprouter.ParamsFromContext(r.Context())
-// 	id, err := strconv.Atoi(params.ByName("id"))
-// 	// id, err := strconv.Atoi(r.URL.Query().Get("id"))
-// 	if err != nil || id < 1 {
-// 		// http.NotFound(w, r)
-// 		app.NotFound(w) // Title not blank and < 100 chars long. Add a message if so.(w, err)
-// 		return
-// 	}
-// 	data := app.NewTemplateData(r)
-// 	app.Render(w, http.StatusOK, "view.tmpl", data)
-// }
 
 func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
@@ -104,9 +61,6 @@ func (app *application) HandleSnippetForm(w http.ResponseWriter, r *http.Request
 	}
 	app.Render(w, http.StatusOK, "create.tmpl", data)
 }
-
-// Post to /snippet/create - changed the
-// func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 
 	var form SnippetCreateForm
@@ -148,6 +102,13 @@ func (app *application) HandleCreateSnippet(w http.ResponseWriter, r *http.Reque
 	// Add values to the sesh data
 	app.sessionManager.Put(r.Context(), "flash", "Snippet successfully created!")
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", id), http.StatusSeeOther)
+}
+
+type UserSignupForm struct {
+	Name                string `form:"name"`
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
 }
 
 func (app *application) HandleSignupForm(w http.ResponseWriter, r *http.Request) {
@@ -201,18 +162,97 @@ func (app *application) HandleSignupPost(w http.ResponseWriter, r *http.Request)
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther) // HTTP 303
 }
 
+type UserLoginForm struct {
+	Email               string `form:"email"`
+	Password            string `form:"password"`
+	validator.Validator `form:"-"`
+}
+
 func (app *application) HandleLoginForm(w http.ResponseWriter, r *http.Request) {
 	data := app.NewTemplateData(r)
 	data.Form = UserLoginForm{}
 	app.Render(w, http.StatusOK, "login.tmpl", data)
-	// fmt.Fprintln(w, "Display an HTML login form")
 }
 func (app *application) HandleLoginPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Auth a user")
+	var form UserLoginForm
+	err := app.DecodePostForm(r, &form)
+	if err != nil {
+		app.ClientError(w, http.StatusBadRequest)
+		return
+	}
+	form.CheckField(validator.NotBlank(form.Email), "email", "This field cannot be blank")
+	form.CheckField(validator.NotBlank(form.Password), "password", "This field cannot be blank")
+	form.CheckField(validator.Matches(form.Email, validator.EmailRegex), "email", "This field must be a valid address")
+	if !form.Valid8() {
+		data := app.NewTemplateData(r)
+		data.Form = form
+		app.Render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
+	}
+	// check if the creds are valid
+	id, err := app.users.Auth(form.Email, form.Password)
+	if err != nil {
+		if errors.Is(err, models.ErrInvalidCreds) {
+			form.AddNonFieldError("Email or password is incorrect")
+			data := app.NewTemplateData(r)
+			data.Form = form
+			app.Render(w, http.StatusUnprocessableEntity, "login.tmpl", data)
+		} else {
+			app.ServerError(w, err)
+		}
+		return
+	}
+	// Generate a new session ID when the auth status and priovilege level change
+	// For example, if user login / logout.
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+	// Add the ID of current user to session, so they are now logged in.
+	app.sessionManager.Put(r.Context(), "authenticatedUseId", id)
+	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther) // 403
+
+	// fmt.Fprintln(w, "Auth a user")
 }
+
 func (app *application) HandleLogoutUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Log out a user")
 }
+
+func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
+	// if r.URL.Path != "/" {
+	// 	app.NotFound(w)
+	// 	return
+	// }
+	// panic("oops! something went wrong") // deliverate panic
+	snippets, err := app.snippets.Latest10()
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+	data := app.NewTemplateData(r)
+	data.Snippets = snippets
+	// Use render helper
+	fmt.Printf("Year: %+v\n", data.CurrentYear)
+	app.Render(w, http.StatusOK, "home.tmpl", data)
+}
+
+// /snippet/view?id=123
+// func (app *application) HandleViewSnippet(w http.ResponseWriter, r *http.Request) {
+// 	params := httprouter.ParamsFromContext(r.Context())
+// 	id, err := strconv.Atoi(params.ByName("id"))
+// 	// id, err := strconv.Atoi(r.URL.Query().Get("id"))
+// 	if err != nil || id < 1 {
+// 		// http.NotFound(w, r)
+// 		app.NotFound(w) // Title not blank and < 100 chars long. Add a message if so.(w, err)
+// 		return
+// 	}
+// 	data := app.NewTemplateData(r)
+// 	app.Render(w, http.StatusOK, "view.tmpl", data)
+// }
+
+// Post to /snippet/create - changed the
+// func HandleCreateSnippet(w http.ResponseWriter, r *http.Request) {
 
 // snippet/create
 func HandleCustomizeHeaders(w http.ResponseWriter, r *http.Request) {
