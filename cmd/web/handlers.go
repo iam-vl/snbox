@@ -209,14 +209,24 @@ func (app *application) HandleLoginPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	// Add the ID of current user to session, so they are now logged in.
-	app.sessionManager.Put(r.Context(), "authenticatedUseId", id)
+	app.sessionManager.Put(r.Context(), "authenticatedUserId", id)
 	http.Redirect(w, r, "/snippet/create", http.StatusSeeOther) // 403
 
 	// fmt.Fprintln(w, "Auth a user")
 }
 
 func (app *application) HandleLogoutUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Log out a user")
+	err := app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.ServerError(w, err)
+		return
+	}
+	// remove the user id from the session data
+	app.sessionManager.Remove(r.Context(), "authenticatedUserId")
+	app.sessionManager.Put(r.Context(), "flash", "You've been logged out successfully")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+
+	// fmt.Fprintln(w, "Log out a user")
 }
 
 func (app *application) HandleHome(w http.ResponseWriter, r *http.Request) {
