@@ -517,8 +517,23 @@ And to the Nav:
     </div>    
 </nav>
 {{ end }}
+```
 
 Check the source: 
 ```html
 <input type="hidden" name="csrf_token" value="12345FUV82PZa5HjLGdOQkQVLOklHDWvpnfy&#43;6mkyB7ZvkonE2c&#43;FYe80x&#43;mYB8RDdzXWh7VT0U6yq&#43;8Gw==">
+```
+Can change the cookie to `SameSite=Strict`:  
+```go
+sessionManager = scs.New()
+sessionManager.Cookie.SameSite = http.SameSiteStrictMode 
+```
+But this will block the sesh cooke for all cross site usage - including safe reqts with GET/HEAD. 
+
+Can enforce TLS 1.3 - this will be enough:
+```go
+tlsConfig := &tls.Config{
+	MinVersion: tls.VersionTLS13,
+	// ...
+}
 ```
