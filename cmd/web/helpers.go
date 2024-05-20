@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-playground/form/v4"
+	"github.com/justinas/nosurf"
 )
 
 func (app *application) IsAuthenticated(r *http.Request) bool {
@@ -19,8 +20,8 @@ func (app *application) NewTemplateData(r *http.Request) *templateData {
 	return &templateData{
 		CurrentYear: time.Now().Year(),
 		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
-		// Add the auth status to the templ data
-		IsAuth: app.IsAuthenticated(r),
+		IsAuth:      app.IsAuthenticated(r), // Added the auth status to the templ data
+		CSRFToken:   nosurf.Token(r),
 	}
 }
 

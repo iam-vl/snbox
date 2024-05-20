@@ -434,4 +434,91 @@ content-length: 0
 date: Sun, 19 May 2024 10:47:21 GMT
 ```
 
+## Protection against CSRF
 
+CSRF: Cookie stored for 12 hrs.
+alexedwards/scs: "SameSite=Lax" on cookies. But it's not universally supported. 
+Token based mitigation:
+```
+go get github.com/justinas/nosurf@v1
+```
+Middleware:  
+```go
+func NoSurf(next http.Handler) http.Handler {
+	csrfHandler := nosurf.New(next)
+	csrfHandler.SetBaseCookie(http.Cookie{
+		HttpOnly: true,
+		Path:     "/",
+		Secure:   true,
+	})
+	return csrfHandler
+}
+```
+Need to protect logout form (included in nav.tmpl, all pages). => use noSurf on all routes (apart from static)\
+Add NoSurf() to the dynamic chain:
+```go
+// Must include nosurf (also inherited by protected)
+dynamic := alice.New(app.sessionManager.LoadAndSave, NoSurf)
+```
+Any form reqt interceoted by NoSurf: 400 Bad Request.
+Solution: use nosurf.Token() to get CSRF token add it to hidden field (csrf_token).
+
+Templates:
+```go
+type templateData struct {
+	CurrentYear int
+	Snippet     *models.Snippet
+	Snippets    []*models.Snippet
+	Form        any
+	Flash       string // Flash message
+	IsAuth      bool   // Add to templ data
+	CSRFToken   string
+}
+```
+Add to template data thru NewTemplateData (helpers):
+```go
+func (app *application) NewTemplateData(r *http.Request) *templateData {
+	return &templateData{
+		CurrentYear: time.Now().Year(),
+		Flash:       app.sessionManager.PopString(r.Context(), "flash"),
+		IsAuth:      app.IsAuthenticated(r), // Added the auth status to the templ data
+		CSRFToken:   nosurf.Token(r),
+	}
+}
+```
+Add to create.tmpl/login.tmpl/signup.tmpl:
+```html  
+{{ define "main" }}
+    <form action="/snippet/create" method="POST">
+        <!-- Invisible CSRF token field  -->
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <!-- ... -->
+    </form>
+{{ end }}
+```
+And to the Nav:
+```html
+{{ define "nav" }}
+<nav>
+    <div>
+		<!-- ...  -->   
+    </div>
+    <div>
+        {{if .IsAuth}}
+            <form action="/user/logout" method="POST">
+                <!-- CSRF Token here  -->
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <button>Logout</button>
+            </form>
+        {{else}}
+            <a href="/user/signup">Signup</a>
+            <a href="/user/login">Log in</a>
+        {{end}}
+    </div>    
+</nav>
+{{ end }}
+
+Check the source: 
+```html
+<input type="hidden" name="csrf_token" value="12345FUV82PZa5HjLGdOQkQVLOklHDWvpnfy&#43;6mkyB7ZvkonE2c&#43;FYe80x&#43;mYB8RDdzXWh7VT0U6yq&#43;8Gw==">
+```

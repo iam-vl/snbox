@@ -23,8 +23,9 @@ func (app *application) routes() http.Handler {
 	fileserver := http.FileServer(http.Dir("./ui/static/"))
 	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileserver))
 
-	// Middleware chain that will contain
-	dynamic := alice.New(app.sessionManager.LoadAndSave)
+	// Middleware chain that will contain.
+	// Must include nosurf (also inherited by protected)
+	dynamic := alice.New(app.sessionManager.LoadAndSave, NoSurf)
 	// Protected middleware chain:
 	protectedChain := dynamic.Append(app.RequireAuth)
 

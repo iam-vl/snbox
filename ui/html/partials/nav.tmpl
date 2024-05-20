@@ -10,6 +10,8 @@
     <div>
         {{if .IsAuth}}
             <form action="/user/logout" method="POST">
+                <!-- CSRF Token here  -->
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <button>Logout</button>
             </form>
         {{else}}
