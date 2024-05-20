@@ -56,3 +56,72 @@ if !ok {
 	return errors.New("cvould not convert the value to bool")
 }
 ```
+
+## Create UserModel.Exists()
+
+```go
+func (m *UserModel) Exists(id int) (bool, error) {
+	var exists bool
+	stmt := `SELECT EXISTS(SELECT true FROM users WHERE id = ?)`
+	err := m.DB.QueryRow(stmt, id).Scan(&exists)
+	return exists, err
+}
+```
+## Create context key 
+
+context.go
+```go
+package main
+type contextKey string
+const isAuthContextKey = contextKey("isAuth")
+```
+
+## Create authenticate() middleware
+
+Let's create a new middleware that:
+1. Retrieves the user id from session data.
+2. Checks the db to see if the id correponds tyo a real user. 
+3. Update the reqt context to include the context ley with value `true`. 
+
+Middleware: 
+```go
+func (app *application) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Retrieve the userid val from the session using GetInt()
+		// Will return an int (userid) or zero (none)
+		id := app.sessionManager.GetInt(r.Context(), "authenticatedUserId")
+		if id == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+		// check to see if a user with this Id exists
+		exists, err := app.users.Exists(id)
+		if err != nil {
+			app.ServerError(w, err)
+			return
+		}
+		// if ok, we create a copy of the request and assign it to r 
+		if exists {
+			ctx := context.WithValue(r.Context(), isAuthContextKey, true)
+			r = r.WithContext(ctx)
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+```
+Include app.Authenticate in the dynamic middleware chain (routes):
+```go
+dynamic := alice.New(app.sessionManager.LoadAndSave, NoSurf, app.Authenticate)
+```
+
+## Update isAuthenticated() helper 
+
+```go
+func (app *application) IsAuthenticated(r *http.Request) bool {
+	isAuth, ok := r.Context().Value(isAuthContextKey).(bool)
+	if !ok {
+		return false
+	}
+	return isAuth
+}
+```

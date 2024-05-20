@@ -25,7 +25,7 @@ func (app *application) routes() http.Handler {
 
 	// Middleware chain that will contain.
 	// Must include nosurf (also inherited by protected)
-	dynamic := alice.New(app.sessionManager.LoadAndSave, NoSurf)
+	dynamic := alice.New(app.sessionManager.LoadAndSave, NoSurf, app.Authenticate)
 	// Protected middleware chain:
 	protectedChain := dynamic.Append(app.RequireAuth)
 

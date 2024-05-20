@@ -1,11 +1,36 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/justinas/nosurf"
 )
+
+func (app *application) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Retrieve the userid val from the session using GetInt()
+		// Will return an int (userid) or zero (none)
+		id := app.sessionManager.GetInt(r.Context(), "authenticatedUserId")
+		if id == 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+		// check to see if a user with this Id exists
+		exists, err := app.users.Exists(id)
+		if err != nil {
+			app.ServerError(w, err)
+			return
+		}
+		// if ok, we create a copy of the request and assign it to r
+		if exists {
+			ctx := context.WithValue(r.Context(), isAuthContextKey, true)
+			r = r.WithContext(ctx)
+		}
+		next.ServeHTTP(w, r)
+	})
+}
 
 func NoSurf(next http.Handler) http.Handler {
 	csrfHandler := nosurf.New(next)

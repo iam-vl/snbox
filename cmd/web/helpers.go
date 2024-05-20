@@ -13,7 +13,11 @@ import (
 )
 
 func (app *application) IsAuthenticated(r *http.Request) bool {
-	return app.sessionManager.Exists(r.Context(), "authenticatedUserId")
+	isAuth, ok := r.Context().Value(isAuthContextKey).(bool)
+	if !ok {
+		return false
+	}
+	return isAuth
 }
 
 func (app *application) NewTemplateData(r *http.Request) *templateData {
