@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/iam-vl/snbox/ui"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 )
@@ -18,10 +19,16 @@ func (app *application) routes() http.Handler {
 	router.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		app.NotFound(w)
 	})
+	// Convert ui.Files embedded fs to a http.FS type so it works as a http.FileSystem interface
+	// Then pass it to http.FileServer to create a file (server) handler
+	fileServer := http.FileServer(http.FS(ui.Files))
+	// Our statics are now in the static of folder of the embedded fs. We no longer need to strip the prefix.
+	// Any requests with `/static/` will now be passed directly to file server.
+	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
 
 	// static file server
-	fileserver := http.FileServer(http.Dir("./ui/static/"))
-	router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileserver))
+	// fileserver := http.FileServer(http.Dir("./ui/static/"))
+	// router.Handler(http.MethodGet, "/static/*filepath", http.StripPrefix("/static", fileserver))
 
 	// Middleware chain that will contain.
 	// Must include nosurf (also inherited by protected)
